@@ -1,0 +1,36 @@
+# ── Dependencies ──────────────────────────────────────────
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.Python
+
+# ── Environment files (NEVER commit secrets) ─────────────
+.env
+.env.local
+.env.production
+.env.*.local
+
+# ── Build outputs ─────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+
+# ── ML Model files (too large for Git, downloaded at runtime)
+model/
+ml-service/model/
+
+# ── IDE / OS ──────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# ── Misc ──────────────────────────────────────────────────
+coverage/
+*.bat
+AUTHENTICATION_FIX.md
+AUTO_INITIALIZATION_SETUP.md
+MIGRATION_SUMMARY.md
