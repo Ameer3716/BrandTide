@@ -300,7 +300,7 @@ export default function Landing() {
                 <div className="w-16 h-16 mx-auto rounded-2xl bg-accent flex items-center justify-center">
                   <item.icon className="text-white" size={32} />
                 </div>
-                <div className="text-5xl font-bold text-accent/20">{item.num}</div>
+                <div className="text-5xl font-bold text-accent/90">{item.num}</div>
                 <h3 className="text-xl font-bold text-content">{item.title}</h3>
                 <p className="text-content-muted">{item.desc}</p>
               </div>
