@@ -222,7 +222,7 @@ export default function Register(){
                   value={name}
                   onChange={e => setName(e.target.value)}
                   required
-                  placeholder="John Doe"
+                  placeholder="Waleed Ahmad"
                   className="w-full pl-10 px-4 py-2.5 rounded-lg border border-gray-200 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition"
                 />
               </div>

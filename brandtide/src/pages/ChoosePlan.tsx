@@ -80,7 +80,7 @@ export default function ChoosePlan() {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center">
-              <Sparkles className="text-white" size={18} />
+              <img src="/logo.jpg" alt="BrandTide Logo" className="w-10 h-10 rounded-xl object-cover" />
             </div>
             <span className="text-lg font-bold text-gray-900">BrandTide</span>
           </div>
@@ -175,7 +175,7 @@ export default function ChoosePlan() {
               onClick={() => navigate('/app')}
               className="text-gray-400 hover:text-gray-600 text-sm underline transition"
             >
-              Skip for now — continue to dashboard
+              Skip for now - continue to dashboard
             </button>
           </div>
         </div>

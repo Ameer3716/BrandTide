@@ -21,7 +21,7 @@ export default function App() {
         {/* Logo section */}
         <div className="p-4 flex items-center gap-3 border-b border-white/10">
           <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center flex-shrink-0">
-            <Sparkles className="text-white" size={20} />
+            <img src="/logo.jpg" alt="BrandTide Logo" className="w-10 h-10 rounded-xl object-cover" />
           </div>
           <h1 className={`text-xl font-bold text-white transition-opacity ${open ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
             BrandTide

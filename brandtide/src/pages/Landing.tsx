@@ -192,10 +192,7 @@ export default function Landing() {
         <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-sidebar/5"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32 relative">
           <div className="text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-full">
-              <Star size={14} className="text-accent" />
-              <span className="text-sm font-medium text-accent">AI-Powered Sentiment Analysis</span>
-            </div>
+            
 
             <h1 className="text-5xl md:text-7xl font-bold text-content leading-tight min-h-[180px] md:min-h-[200px]">
               <span className="text-accent">
@@ -435,7 +432,7 @@ export default function Landing() {
               onClick={() => setActivePlan('free')}
             >
               <h3 className="text-2xl font-bold text-content mb-2">Free</h3>
-              <div className="text-4xl font-bold text-content mb-6">$0<span className="text-lg text-content-muted">/month</span></div>
+              <div className="text-4xl font-bold text-content mb-6">Rs 0<span className="text-lg text-content-muted">/month</span></div>
               <p className="text-content-muted mb-6">Perfect for trying out BrandTide</p>
               <ul className="space-y-3 mb-8">
                 {['100 reviews/month', 'Basic sentiment analysis', 'Dashboard access', 'CSV export'].map((item, i) => (
@@ -464,7 +461,7 @@ export default function Landing() {
                 Most Popular
               </div>
               <h3 className="text-2xl font-bold text-content mb-2">Pro</h3>
-              <div className="text-4xl font-bold text-content mb-6">$49<span className="text-lg text-content-muted">/month</span></div>
+              <div className="text-4xl font-bold text-content mb-6">Rs 490<span className="text-lg text-content-muted">/month</span></div>
               <p className="text-content-muted mb-6">For growing businesses</p>
               <ul className="space-y-3 mb-8">
                 {['5,000 reviews/month', 'Advanced sentiment analysis', 'Topic detection', 'PDF reports', 'Scheduled reports', 'Priority support'].map((item, i) => (
@@ -522,7 +519,7 @@ export default function Landing() {
             {[
               {
                 name: 'Dr. Qamar-uz-Zaman',
-                role: 'Scientist',
+                role: 'Supervisor',
                 gradient: 'from-sidebar to-sidebar-dark',
                 initials: 'QZ',
                 image: '/team/qamar.png'  // Add your photo to: public/team/qamar.png
@@ -543,7 +540,7 @@ export default function Landing() {
               },
               {
                 name: 'Ameer Sultan',
-                role: 'Web & AI Engineer',
+                role: 'Web & AI / ML Engineer',
                 gradient: 'from-sidebar to-accent',
                 initials: 'AS',
                 image: '/team/ameer.png'  // Add your photo to: public/team/ameer.png
@@ -600,8 +597,8 @@ export default function Landing() {
             <h3 className="text-3xl font-bold text-center text-content mb-12">What People Say</h3>
             <div className="grid md:grid-cols-2 gap-8">
               {[
-                { name: 'Sarah Johnson', role: 'Product Manager, TechCorp', quote: '"BrandTide transformed how we understand our customers. The insights are incredibly actionable and the interface is beautiful."' },
-                { name: 'Michael Chen', role: 'Data Analyst, RetailHub', quote: '"The batch processing feature saved us countless hours. We can now analyze thousands of reviews in minutes instead of days."' },
+                { name: 'Hamza Ali Mazaari', role: 'Product Manager, TechCorp', quote: '"BrandTide transformed how we understand our customers. The insights are incredibly actionable and the interface is beautiful."' },
+                { name: 'Bilal Abbas', role: 'Data Analyst, RetailHub', quote: '"The batch processing feature saved us countless hours. We can now analyze thousands of reviews in minutes instead of days."' },
               ].map((testimonial, i) => (
                 <div key={i} className="bg-gray-50 p-6 rounded-xl">
                   <div className="flex gap-1 mb-4">
