@@ -101,5 +101,15 @@ export const dataService = {
     } catch {
       return false
     }
+  },
+
+  // Get topics aggregated from reviews
+  async getTopics() {
+    const response = await fetch(`${API_URL}/data/topics`, {
+      headers: getAuthHeaders()
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message)
+    return data.data
   }
 }

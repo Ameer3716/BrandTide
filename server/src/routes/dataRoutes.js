@@ -6,6 +6,7 @@ import {
   getRepresentativeReviews,
   getBrands,
   getProducts,
+  getTopics,
   initializeSampleData
 } from '../controllers/dataController.js'
 import { authenticate } from '../middlewares/auth.js'
@@ -22,6 +23,7 @@ router.get('/top-products', getTopProducts)
 router.get('/representative-reviews', getRepresentativeReviews)
 router.get('/brands', getBrands)
 router.get('/products', getProducts)
+router.get('/topics', getTopics)
 
 // Initialize sample data (development only)
 router.post('/init-sample-data', initializeSampleData)

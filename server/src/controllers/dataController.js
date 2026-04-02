@@ -33,16 +33,16 @@ export const getMetrics = async (req, res) => {
       totalReviews += stat.count
     })
     
-    const positivePercent = totalReviews > 0 ? Math.round((distribution.Positive / totalReviews) * 100) : 62
-    const neutralPercent = totalReviews > 0 ? Math.round((distribution.Neutral / totalReviews) * 100) : 18
-    const negativePercent = totalReviews > 0 ? Math.round((distribution.Negative / totalReviews) * 100) : 20
+    const positivePercent = totalReviews > 0 ? Math.round((distribution.Positive / totalReviews) * 100) : 0
+    const neutralPercent = totalReviews > 0 ? Math.round((distribution.Neutral / totalReviews) * 100) : 0
+    const negativePercent = totalReviews > 0 ? Math.round((distribution.Negative / totalReviews) * 100) : 0
     
     res.json({
       success: true,
       data: {
-        totalReviews: totalReviews || 1543,
-        brandsCount: brandsCount || 3,
-        productsCount: productsCount || 6,
+        totalReviews,
+        brandsCount,
+        productsCount,
         distribution: [
           { name: 'Positive', value: positivePercent },
           { name: 'Neutral', value: neutralPercent },
@@ -83,17 +83,26 @@ export const getSentimentTrend = async (req, res) => {
     .lean()
     
     if (trendData.length === 0) {
-      const sampleData = []
-      for (let i = parseInt(days) - 1; i >= 0; i--) {
-        sampleData.push({
-          date: dayjs().subtract(i, 'day').format('YYYY-MM-DD'),
-          pos: Math.floor(40 + Math.random() * 40),
-          neu: Math.floor(10 + Math.random() * 20),
-          neg: Math.floor(10 + Math.random() * 30)
-        })
-      }
+      // Fallback: aggregate from Review collection directly
+      const reviewTrend = await Review.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(userId), createdAt: { $gte: startDate } } },
+        { $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          pos: { $sum: { $cond: [{ $eq: ['$sentiment.label', 'Positive'] }, 1, 0] } },
+          neu: { $sum: { $cond: [{ $eq: ['$sentiment.label', 'Neutral'] }, 1, 0] } },
+          neg: { $sum: { $cond: [{ $eq: ['$sentiment.label', 'Negative'] }, 1, 0] } }
+        }},
+        { $sort: { _id: 1 } }
+      ])
       
-      return res.json({ success: true, data: sampleData })
+      const formattedReviewTrend = reviewTrend.map(item => ({
+        date: item._id,
+        pos: item.pos,
+        neu: item.neu,
+        neg: item.neg
+      }))
+      
+      return res.json({ success: true, data: formattedReviewTrend })
     }
     
     const formattedData = trendData.map(item => ({
@@ -378,6 +387,41 @@ export const initializeSampleData = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to initialize data',
+      error: error.message
+    })
+  }
+}
+
+// @desc    Get topics aggregated from review data
+// @route   GET /api/data/topics
+// @access  Private
+export const getTopics = async (req, res) => {
+  try {
+    const userId = req.user._id
+    
+    const topicAgg = await Review.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $unwind: '$topics' },
+      { $group: {
+        _id: '$topics.name',
+        count: { $sum: 1 },
+        avgConfidence: { $avg: '$topics.confidence' }
+      }},
+      { $sort: { count: -1 } },
+      { $limit: 20 }
+    ])
+    
+    const topics = topicAgg.map(t => ({
+      label: t._id,
+      count: t.count,
+      confidence: Math.round(t.avgConfidence * 100) / 100
+    }))
+    
+    res.json({ success: true, data: topics })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch topics',
       error: error.message
     })
   }

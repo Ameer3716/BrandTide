@@ -29,18 +29,24 @@ export default function Batch() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [stats, setStats] = useState<{ positive: number; negative: number; neutral: number; total: number } | null>(null)
+  const [savedCount, setSavedCount] = useState(0)
 
   async function runBatch(data: any[]) {
     setLoading(true)
     setError('')
+    setSavedCount(0)
     try {
-      const res = await classifyBatch(data)
+      const result = await classifyBatch(data)
+      // classifyBatch returns result.data (the array) but the full response also has saved info
+      // We need to get the saved count from the raw response
+      const res = Array.isArray(result) ? result : (result.data || result)
       setOut(res)
       // Calculate stats
       const pos = res.filter((r: any) => r.label?.toLowerCase() === 'positive').length
       const neg = res.filter((r: any) => r.label?.toLowerCase() === 'negative').length
       const neu = res.filter((r: any) => r.label?.toLowerCase() === 'neutral').length
       setStats({ positive: pos, negative: neg, neutral: neu, total: res.length })
+      setSavedCount(res.length)
     } catch (err: any) {
       setError(err.message || 'Batch classification failed. Make sure the ML service is running.')
     }
@@ -140,7 +146,7 @@ export default function Batch() {
           {/* Results table */}
           <GlassCard>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-content">Results ({Math.min(out.length, 50)} of {out.length})</h3>
+              <h3 className="text-lg font-semibold text-content">Results ({out.length} reviews)</h3>
               <button className="btn-primary flex items-center gap-2" onClick={download}>
                 <Download size={16} />
                 Download Results CSV
@@ -157,10 +163,16 @@ export default function Batch() {
                     {out[0]?.brand && (
                       <th className="text-left px-4 py-3 font-semibold text-content-muted text-xs uppercase tracking-wide">Brand</th>
                     )}
+                    {out[0]?.product_name && (
+                      <th className="text-left px-4 py-3 font-semibold text-content-muted text-xs uppercase tracking-wide">Product</th>
+                    )}
+                    {out[0]?.topic && (
+                      <th className="text-left px-4 py-3 font-semibold text-content-muted text-xs uppercase tracking-wide">Topic</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {out.slice(0, 50).map((row, i) => {
+                  {out.map((row, i) => {
                     const textVal = row.text || row.review_text || row.review || row.comment || ''
                     const conf = typeof row.confidence === 'number' ? row.confidence : 0
                     return (
@@ -177,6 +189,12 @@ export default function Batch() {
                         </td>
                         {out[0]?.brand && (
                           <td className="px-4 py-3 text-content text-xs">{row.brand || '—'}</td>
+                        )}
+                        {out[0]?.product_name && (
+                          <td className="px-4 py-3 text-content text-xs">{row.product_name || '—'}</td>
+                        )}
+                        {out[0]?.topic && (
+                          <td className="px-4 py-3 text-content text-xs">{row.topic || '—'}</td>
                         )}
                       </tr>
                     )

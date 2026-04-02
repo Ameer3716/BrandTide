@@ -32,8 +32,8 @@ export default function Dashboard() {
         const loadTime = performance.now() - startTime
         console.log(`Dashboard data loaded in ${loadTime.toFixed(2)}ms`)
         
-        // Check if database has actual data (not mock data)
-        if (metricsData.totalReviews === 0 || metricsData.totalReviews === 1543) {
+        // Check if database has actual data
+        if (metricsData.totalReviews === 0) {
           console.log('No data in database, initializing sample data...')
           setInitializing(true)
           

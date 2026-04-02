@@ -9,6 +9,37 @@ type Row = Record<string, any>
 const ACCEPTED_EXTENSIONS = '.csv,.tsv,.xlsx,.xls,.json,.txt'
 const FORMAT_LABELS = 'CSV, Excel (.xlsx/.xls), TSV, JSON, TXT'
 
+/** Map of common CSV column aliases → standard BrandTide column names */
+const COLUMN_ALIASES: Record<string, string> = {
+  'review_text': 'text',
+  'review': 'text',
+  'comment': 'text',
+  'sentence': 'text',
+  'review_id': 'review_id',
+  'product': 'product_name',
+  'product_name': 'product_name',
+  'productname': 'product_name',
+  'product_id': 'product_id',
+  'productid': 'product_id',
+  'brand': 'brand',
+  'brand_name': 'brand',
+  'topic': 'topic',
+  'category': 'topic',
+}
+
+/** Normalize all column keys: lowercase + map aliases to standard names */
+function normalizeRows(rows: Row[]): Row[] {
+  return rows.map(row => {
+    const normalized: Row = {}
+    for (const [key, value] of Object.entries(row)) {
+      const lowerKey = key.toLowerCase().trim()
+      const standardKey = COLUMN_ALIASES[lowerKey] || lowerKey
+      normalized[standardKey] = value
+    }
+    return normalized
+  })
+}
+
 /** Convert any supported file into Row[] with headers */
 function parseFile(file: File): Promise<Row[]> {
   const ext = file.name.split('.').pop()?.toLowerCase() || ''
@@ -23,7 +54,7 @@ function parseFile(file: File): Promise<Row[]> {
           const workbook = XLSX.read(data, { type: 'array' })
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
           const rows = XLSX.utils.sheet_to_json<Row>(firstSheet, { defval: '' })
-          resolve(rows.filter(r => Object.values(r).some(v => v !== '')).slice(0, 500))
+          resolve(normalizeRows(rows.filter(r => Object.values(r).some(v => v !== '')).slice(0, 500)))
         } catch {
           reject(new Error('Failed to parse Excel file. Make sure it is a valid .xlsx or .xls file.'))
         }
@@ -41,7 +72,7 @@ function parseFile(file: File): Promise<Row[]> {
         try {
           const parsed = JSON.parse(e.target?.result as string)
           const arr: Row[] = Array.isArray(parsed) ? parsed : [parsed]
-          resolve(arr.filter(Boolean).slice(0, 500))
+          resolve(normalizeRows(arr.filter(Boolean).slice(0, 500)))
         } catch {
           reject(new Error('Failed to parse JSON file. Make sure it contains a valid JSON array of objects.'))
         }
@@ -62,7 +93,7 @@ function parseFile(file: File): Promise<Row[]> {
           return
         }
         const data = (res.data as Row[]).filter(r => r && Object.values(r).some(v => v !== '')).slice(0, 500)
-        resolve(data)
+        resolve(normalizeRows(data))
       },
       error: (err: any) => reject(new Error('Parse error: ' + err.message)),
     })
