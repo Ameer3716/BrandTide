@@ -15,7 +15,6 @@ export default function Dashboard() {
   const [sentimentTrend, setSentimentTrend] = useState<any[]>([])
   const [topProducts, setTopProducts] = useState<any>({ pos: [], neg: [] })
   const [loading, setLoading] = useState(true)
-  const [initializing, setInitializing] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -32,30 +31,10 @@ export default function Dashboard() {
         const loadTime = performance.now() - startTime
         console.log(`Dashboard data loaded in ${loadTime.toFixed(2)}ms`)
         
-        // Check if database has actual data
-        if (metricsData.totalReviews === 0) {
-          console.log('No data in database, initializing sample data...')
-          setInitializing(true)
-          
-          // Initialize sample data
-          await dataService.initializeSampleData()
-          
-          // Reload data after initialization
-          const [newMetrics, newTrend, newProducts] = await Promise.all([
-            dataService.getMetrics(),
-            dataService.getSentimentTrend(30),
-            dataService.getTopProducts()
-          ])
-          
-          setMetrics(newMetrics)
-          setSentimentTrend(newTrend)
-          setTopProducts(newProducts)
-          setInitializing(false)
-        } else {
-          setMetrics(metricsData)
-          setSentimentTrend(trendData)
-          setTopProducts(productsData)
-        }
+        // Load data directly - no auto-initialization
+        setMetrics(metricsData)
+        setSentimentTrend(trendData)
+        setTopProducts(productsData)
       } catch (error) {
         console.error('Error loading dashboard data:', error)
       } finally {
@@ -65,11 +44,25 @@ export default function Dashboard() {
     loadData()
   }, [])
 
-  if (loading || initializing) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-content-muted">
-          {initializing ? 'Initializing your dashboard data...' : 'Loading dashboard...'}
+          Loading dashboard...
+        </div>
+      </div>
+    )
+  }
+
+  // Show empty state when no data is available
+  if (!metrics || metrics.totalReviews === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-content-muted text-lg mb-2">No data available yet</p>
+          <p className="text-content-muted text-sm">
+            Upload a CSV file in the <strong>Batch Classification</strong> page to see dashboard data.
+          </p>
         </div>
       </div>
     )

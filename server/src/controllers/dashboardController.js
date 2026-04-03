@@ -137,79 +137,15 @@ export const getOverview = async (req, res) => {
 // @access  Private
 export const initializeSampleData = async (req, res) => {
   try {
-    const userId = req.user._id
-    
-    // Check if user already has reviews
-    const existingCount = await Review.countDocuments({ userId })
-    if (existingCount > 0) {
-      return res.json({
-        success: true,
-        message: 'User already has data',
-        data: { initialized: false, count: existingCount }
-      })
-    }
-    
-    // Sample review texts
-    const reviewTexts = [
-      { text: 'Battery lasts all day even with GPS.', sentiment: 'Positive', conf: 0.92 },
-      { text: 'Build quality feels premium for the price.', sentiment: 'Positive', conf: 0.88 },
-      { text: 'Camera struggles in low light situations.', sentiment: 'Negative', conf: 0.85 },
-      { text: 'Customer support was quick and helpful.', sentiment: 'Positive', conf: 0.95 },
-      { text: 'The latest update fixed most of my issues.', sentiment: 'Neutral', conf: 0.75 },
-      { text: 'The UI is smooth but has occasional stutters.', sentiment: 'Neutral', conf: 0.68 },
-      { text: 'Great value and solid performance overall.', sentiment: 'Positive', conf: 0.91 },
-      { text: 'Speaker quality is tinny at high volumes.', sentiment: 'Negative', conf: 0.82 },
-      { text: 'Love the compact size and feel.', sentiment: 'Positive', conf: 0.89 },
-      { text: 'Shipping took longer than expected.', sentiment: 'Negative', conf: 0.79 }
-    ]
-    
-    const products = [
-      { id: 'P-100', brand: 'Aurora', name: 'Aurora X1' },
-      { id: 'P-101', brand: 'Aurora', name: 'Aurora Mini' },
-      { id: 'P-200', brand: 'Nimbus', name: 'Nimbus Air' },
-      { id: 'P-201', brand: 'Nimbus', name: 'Nimbus Max' },
-      { id: 'P-300', brand: 'Vertex', name: 'Vertex Pro' },
-      { id: 'P-301', brand: 'Vertex', name: 'Vertex Lite' }
-    ]
-    
-    // Create sample reviews
-    const sampleReviews = []
-    for (let i = 0; i < 60; i++) {
-      const review = reviewTexts[i % reviewTexts.length]
-      const product = products[i % products.length]
-      
-      const newReview = new Review({
-        userId,
-        text: review.text,
-        productId: product.id,
-        productName: product.name,
-        brand: product.brand,
-        sentiment: {
-          label: review.sentiment,
-          confidence: review.conf
-        },
-        source: 'manual',
-        createdAt: dayjs().subtract(Math.floor(Math.random() * 30), 'day').toDate()
-      })
-      
-      await newReview.save() // Use save() to trigger pre-save hooks for encryption
-      sampleReviews.push(newReview)
-    }
-    
+    // Auto-initialization is disabled - only user-uploaded data is shown
     res.json({
-      success: true,
-      message: 'Sample data initialized successfully',
-      data: {
-        initialized: true,
-        reviewsCreated: sampleReviews.length
-      }
+      success: false,
+      message: 'Auto-initialization is disabled. Please upload a CSV file to populate your data.'
     })
-    
   } catch (error) {
-    console.error('Initialize sample data error:', error)
     res.status(500).json({
       success: false,
-      message: 'Failed to initialize sample data',
+      message: 'Failed to initialize data',
       error: error.message
     })
   }

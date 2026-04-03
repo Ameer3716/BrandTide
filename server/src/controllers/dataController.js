@@ -408,99 +408,10 @@ export const getProducts = async (req, res) => {
 // @access  Private
 export const initializeSampleData = async (req, res) => {
   try {
-    const userId = req.user._id
-    
-    // Check if user already has data
-    const existingBrands = await Brand.countDocuments({ userId })
-    if (existingBrands > 0) {
-      return res.json({
-        success: true,
-        message: 'Data already initialized'
-      })
-    }
-    
-    // Create brands
-    const brands = await Brand.insertMany([
-      { name: 'Aurora', userId },
-      { name: 'Nimbus', userId },
-      { name: 'Vertex', userId }
-    ])
-    
-    // Create products
-    await Product.insertMany([
-      { productId: 'P-100', name: 'Aurora X1', brand: 'Aurora', userId, brandRef: brands[0]._id },
-      { productId: 'P-101', name: 'Aurora Mini', brand: 'Aurora', userId, brandRef: brands[0]._id },
-      { productId: 'P-200', name: 'Nimbus Air', brand: 'Nimbus', userId, brandRef: brands[1]._id },
-      { productId: 'P-201', name: 'Nimbus Max', brand: 'Nimbus', userId, brandRef: brands[1]._id },
-      { productId: 'P-300', name: 'Vertex Pro', brand: 'Vertex', userId, brandRef: brands[2]._id },
-      { productId: 'P-301', name: 'Vertex Lite', brand: 'Vertex', userId, brandRef: brands[2]._id }
-    ])
-    
-    // Generate sentiment trend data for last 30 days
-    const sentimentData = []
-    for (let i = 29; i >= 0; i--) {
-      sentimentData.push({
-        userId,
-        date: dayjs().subtract(i, 'day').toDate(),
-        positive: Math.floor(40 + Math.random() * 40),
-        neutral: Math.floor(10 + Math.random() * 20),
-        negative: Math.floor(10 + Math.random() * 30)
-      })
-    }
-    await SentimentData.insertMany(sentimentData)
-    
-    // Create sample reviews with encrypted data
-    const sampleReviews = []
-    const reviewTexts = [
-      { text: 'Great battery life! Lasts all day with heavy use.', sentiment: 'Positive', product: 'P-100', productName: 'Aurora X1', brand: 'Aurora' },
-      { text: 'Camera quality is outstanding, especially in low light.', sentiment: 'Positive', product: 'P-100', productName: 'Aurora X1', brand: 'Aurora' },
-      { text: 'Fast delivery and excellent packaging.', sentiment: 'Positive', product: 'P-101', productName: 'Aurora Mini', brand: 'Aurora' },
-      { text: 'Value for money is exceptional.', sentiment: 'Positive', product: 'P-200', productName: 'Nimbus Air', brand: 'Nimbus' },
-      { text: 'Build quality feels premium and solid.', sentiment: 'Positive', product: 'P-201', productName: 'Nimbus Max', brand: 'Nimbus' },
-      { text: 'Delivery was delayed by 3 days.', sentiment: 'Negative', product: 'P-100', productName: 'Aurora X1', brand: 'Aurora' },
-      { text: 'Device overheats during gaming.', sentiment: 'Negative', product: 'P-200', productName: 'Nimbus Air', brand: 'Nimbus' },
-      { text: 'Battery drains too quickly.', sentiment: 'Negative', product: 'P-300', productName: 'Vertex Pro', brand: 'Vertex' },
-      { text: 'Camera performance is just okay.', sentiment: 'Neutral', product: 'P-101', productName: 'Aurora Mini', brand: 'Aurora' },
-      { text: 'Decent product for the price.', sentiment: 'Neutral', product: 'P-201', productName: 'Nimbus Max', brand: 'Nimbus' },
-      { text: 'Love the sleek design and premium feel!', sentiment: 'Positive', product: 'P-100', productName: 'Aurora X1', brand: 'Aurora' },
-      { text: 'Screen is vibrant and responsive.', sentiment: 'Positive', product: 'P-200', productName: 'Nimbus Air', brand: 'Nimbus' },
-      { text: 'Very satisfied with the purchase.', sentiment: 'Positive', product: 'P-300', productName: 'Vertex Pro', brand: 'Vertex' },
-      { text: 'Customer support was very helpful.', sentiment: 'Positive', product: 'P-101', productName: 'Aurora Mini', brand: 'Aurora' },
-      { text: 'Fast charging is a game changer.', sentiment: 'Positive', product: 'P-201', productName: 'Nimbus Max', brand: 'Nimbus' },
-      { text: 'Screen has some light bleeding issues.', sentiment: 'Negative', product: 'P-300', productName: 'Vertex Pro', brand: 'Vertex' },
-      { text: 'Audio quality is below expectations.', sentiment: 'Negative', product: 'P-101', productName: 'Aurora Mini', brand: 'Aurora' },
-      { text: 'Price is a bit high for the features.', sentiment: 'Negative', product: 'P-200', productName: 'Nimbus Air', brand: 'Nimbus' },
-      { text: 'Average performance, nothing special.', sentiment: 'Neutral', product: 'P-300', productName: 'Vertex Pro', brand: 'Vertex' },
-      { text: 'Does the job, no complaints.', sentiment: 'Neutral', product: 'P-100', productName: 'Aurora X1', brand: 'Aurora' }
-    ]
-    
-    for (let i = 0; i < 60; i++) {
-      const sample = reviewTexts[i % reviewTexts.length]
-      const daysAgo = Math.floor(Math.random() * 30)
-      const review = new Review({
-        userId,
-        text: sample.text,
-        productId: sample.product,
-        productName: sample.productName,
-        brand: sample.brand,
-        sentiment: {
-          label: sample.sentiment,
-          confidence: 0.75 + Math.random() * 0.2
-        },
-        topics: [
-          { name: 'Battery', confidence: Math.random() },
-          { name: 'Camera', confidence: Math.random() }
-        ],
-        createdAt: dayjs().subtract(daysAgo, 'day').toDate()
-      })
-      await review.save() // Save individually to trigger encryption
-    }
-    
-    console.log(`✅ Initialized ${60} encrypted reviews for user ${userId}`)
-    
+    // Auto-initialization is disabled - only user-uploaded data is shown
     res.json({
-      success: true,
-      message: 'Sample data initialized successfully with encrypted reviews'
+      success: false,
+      message: 'Auto-initialization is disabled. Please upload a CSV file to populate your data.'
     })
   } catch (error) {
     res.status(500).json({
