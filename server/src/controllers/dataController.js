@@ -22,8 +22,8 @@ export const getMetrics = async (req, res) => {
           count: { $sum: 1 }
         }}
       ]),
-      Brand.countDocuments({ userId }),
-      Product.countDocuments({ userId })
+      Brand.countDocuments({ userId, isActive: true }),
+      Product.countDocuments({ userId, isActive: true })
     ])
     
     const distribution = { Positive: 0, Neutral: 0, Negative: 0 }

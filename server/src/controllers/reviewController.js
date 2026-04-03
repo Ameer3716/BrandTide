@@ -130,6 +130,33 @@ function extractTopics(text) {
   return found.length > 0 ? found : [{ name: 'General', confidence: 0.5 }]
 }
 
+/**
+ * Generate brand and product from review text if not provided
+ */
+function generateBrandAndProduct(reviewText) {
+  // Simple heuristic to detect brand/product mentions
+  const brandPatterns = [
+    /(?:brand|company|made by|manufacturer):\s*(\w+)/i,
+    /^(Apple|Samsung|Google|Microsoft|Sony|LG|OnePlus|Xiaomi|Huawei|Realme|Nokia|Motorola|HTC|BlackBerry)\s/i,
+    /(iPhone|Galaxy|Pixel|Surface|Xperia|V\d+|Note|Max|Pro|Ultra)\s/i
+  ]
+  
+  let brand = 'Unknown'
+  for (const pattern of brandPatterns) {
+    const match = reviewText.match(pattern)
+    if (match) {
+      brand = match[1] || 'Unknown'
+      break
+    }
+  }
+  
+  // First few words as product
+  const words = reviewText.trim().split(/\s+/).slice(0, 3).join(' ')
+  const product = words.substring(0, 50) || 'Generic Product'
+  
+  return { brand, product }
+}
+
 // @desc    Classify single review
 // @route   POST /api/reviews/classifier/single
 // @access  Private
@@ -183,11 +210,11 @@ export const classifyBatch = async (req, res) => {
     
     // Normalize CSV column keys (lowercase + alias mapping)
     const COLUMN_ALIASES = {
-      'review_text': 'text', 'review': 'text', 'comment': 'text', 'sentence': 'text',
-      'product': 'product_name', 'productname': 'product_name',
-      'productid': 'product_id',
-      'brand_name': 'brand',
-      'topic': 'topic', 'category': 'topic'
+      'review_text': 'text', 'review': 'text', 'comment': 'text', 'sentence': 'text', 'text_review': 'text', 'review_content': 'text',
+      'product': 'product_name', 'productname': 'product_name', 'product_id': 'product_id', 'product name': 'product_name', 'item': 'product_name', 'item_name': 'product_name',
+      'productid': 'product_id', 'product-id': 'product_id', 'id': 'product_id',
+      'brand_name': 'brand', 'brand name': 'brand', 'company': 'brand', 'vendor': 'brand', 'manufacturer': 'brand',
+      'topic': 'topic', 'category': 'topic', 'topic_name': 'topic'
     }
     
     const normalizedReviews = reviews.map(row => {
@@ -217,24 +244,39 @@ export const classifyBatch = async (req, res) => {
     const productMap = new Map() // productId -> { name, brand }
     
     for (const row of normalizedReviews) {
-      const brand = row.brand || 'Unknown'
-      const productName = row.product_name || 'Unknown Product'
+      let brand = row.brand || ''
+      let productName = row.product_name || ''
+      const reviewText = row.text || ''
+      
+      // Fallback: extract from review text if brand/product not provided
+      if (!brand || brand === 'Unknown') {
+        const extracted = generateBrandAndProduct(reviewText)
+        if (!brand) brand = extracted.brand
+        if (!productName) productName = extracted.product
+      }
+      
+      // Double fallback if still empty
+      if (!brand) brand = 'General'
+      if (!productName) productName = 'Review'
+      
       const productId = row.product_id || `P-${productName.replace(/\s+/g, '-').substring(0, 20)}`
       
-      brandSet.add(brand)
+      brandSet.add(brand.trim())
       if (!productMap.has(productId)) {
-        productMap.set(productId, { name: productName, brand })
+        productMap.set(productId, { name: productName.trim(), brand: brand.trim() })
       }
     }
     
     // Upsert Brands
+    console.log(`📝 Upserting ${brandSet.size} unique brands...`)
     for (const brandName of brandSet) {
       try {
-        await Brand.findOneAndUpdate(
+        const result = await Brand.findOneAndUpdate(
           { userId, name: brandName },
           { userId, name: brandName, isActive: true },
           { upsert: true, new: true }
         )
+        console.log(`✅ Brand saved: ${brandName}`)
       } catch (e) {
         // Ignore duplicate key errors
         if (e.code !== 11000) console.warn('Brand upsert error:', e.message)
@@ -242,13 +284,15 @@ export const classifyBatch = async (req, res) => {
     }
     
     // Upsert Products
+    console.log(`📝 Upserting ${productMap.size} unique products...`)
     for (const [productId, info] of productMap.entries()) {
       try {
-        await Product.findOneAndUpdate(
+        const result = await Product.findOneAndUpdate(
           { userId, productId },
           { userId, productId, name: info.name, brand: info.brand, isActive: true },
           { upsert: true, new: true }
         )
+        console.log(`✅ Product saved: ${info.name} (Brand: ${info.brand})`)
       } catch (e) {
         if (e.code !== 11000) console.warn('Product upsert error:', e.message)
       }
@@ -263,8 +307,20 @@ export const classifyBatch = async (req, res) => {
       const pred = results[i] || {}
       
       const reviewText = row.text || ''
-      const brand = row.brand || 'Unknown'
-      const productName = row.product_name || 'Unknown Product'
+      let brand = row.brand || ''
+      let productName = row.product_name || ''
+      
+      // Fallback: extract from review text if brand/product not provided
+      if (!brand || brand === 'Unknown') {
+        const extracted = generateBrandAndProduct(reviewText)
+        if (!brand) brand = extracted.brand
+        if (!productName) productName = extracted.product
+      }
+      
+      // Double fallback if still empty
+      if (!brand) brand = 'General'
+      if (!productName) productName = 'Review'
+      
       const productId = row.product_id || `P-${productName.replace(/\s+/g, '-').substring(0, 20)}`
       const label = capitalizeLabel(pred.label)
       const confidence = typeof pred.confidence === 'number' ? pred.confidence : 0.5
@@ -277,8 +333,8 @@ export const classifyBatch = async (req, res) => {
           userId,
           text: reviewText,
           productId,
-          productName,
-          brand,
+          productName: productName.trim(),
+          brand: brand.trim(),
           sentiment: { label, confidence },
           topics,
           source: 'csv'
@@ -310,6 +366,12 @@ export const classifyBatch = async (req, res) => {
     }
     
     console.log(`✅ Saved ${savedCount}/${results.length} reviews (${sentimentCounts.Positive} positive, ${sentimentCounts.Neutral} neutral, ${sentimentCounts.Negative} negative)`)
+    console.log(`📊 Tracked ${brandSet.size} brands and ${productMap.size} products`)
+    
+    // Verify brands and products were saved
+    const verifyBrands = await Brand.countDocuments({ userId, isActive: true })
+    const verifyProducts = await Product.countDocuments({ userId, isActive: true })
+    console.log(`🔍 Verification: ${verifyBrands} active brands, ${verifyProducts} active products found in DB`)
     
     // Add index to results for frontend
     const indexed = results.map((r, i) => ({ ...r, index: i }))
@@ -319,7 +381,9 @@ export const classifyBatch = async (req, res) => {
       data: indexed,
       saved: {
         count: savedCount,
-        breakdown: sentimentCounts
+        breakdown: sentimentCounts,
+        brandsCount: brandSet.size,
+        productsCount: productMap.size
       }
     })
     
@@ -412,6 +476,61 @@ export const getReviews = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch reviews',
+      error: error.message
+    })
+  }
+}
+
+// @desc    Get user's recent activity
+// @route   GET /api/reviews/recent-activity
+// @access  Private
+export const getRecentActivity = async (req, res) => {
+  try {
+    const userId = req.user._id
+    const BatchJob = await import('../models/BatchJob.js').then(m => m.default)
+    
+    // Get 5 most recent reviews
+    const recentReviews = await Review.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('text sentiment.label createdAt')
+    
+    // Get 5 most recent batch jobs
+    const recentBatches = await BatchJob.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('fileName rowCount status results createdAt')
+    
+    // Format reviews
+    const reviewsFormatted = recentReviews.map(review => ({
+      type: 'single',
+      description: `Single classify — "${review.text.substring(0, 20)}${review.text.length > 20 ? '…' : ''}"`,
+      result: `Result: ${review.sentiment.label}`,
+      timestamp: review.createdAt
+    }))
+    
+    // Format batch jobs
+    const batchesFormatted = recentBatches.map(batch => ({
+      type: 'batch',
+      description: `Batch job — ${batch.rowCount} rows (${batch.fileName})`,
+      result: `Status: ${batch.status.charAt(0).toUpperCase() + batch.status.slice(1)}`,
+      timestamp: batch.createdAt
+    }))
+    
+    // Combine and sort by timestamp
+    const combined = [...reviewsFormatted, ...batchesFormatted]
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, 10)
+    
+    res.json({
+      success: true,
+      data: combined
+    })
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch recent activity',
       error: error.message
     })
   }

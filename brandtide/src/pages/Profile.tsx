@@ -1,9 +1,40 @@
 import GlassCard from '@/components/ui/GlassCard'
 import { useAuth } from '@/state/auth'
 import { User, Mail, Activity, Clock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 export default function Profile() {
   const { user } = useAuth()
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [loadingActivity, setLoadingActivity] = useState(false)
+
+  useEffect(() => {
+    if (user?.token) {
+      fetchRecentActivity()
+    }
+  }, [user?.token])
+
+  async function fetchRecentActivity() {
+    setLoadingActivity(true)
+    try {
+      const response = await fetch(`${API_URL}/reviews/recent-activity`, {
+        headers: {
+          'Authorization': `Bearer ${user?.token}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setRecentActivity(data.data || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent activity:', error)
+    } finally {
+      setLoadingActivity(false)
+    }
+  }
 
   return (
     <div className="max-w-2xl">
@@ -46,22 +77,23 @@ export default function Profile() {
                 <Activity size={16} className="text-content-muted" />
                 <h4 className="text-sm font-medium text-content">Recent Activity</h4>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <Clock size={14} className="text-content-muted" />
-                  <div className="flex-1">
-                    <p className="text-sm text-content">Single classify — "Battery zbrdst…"</p>
-                    <p className="text-xs text-content-muted">Result: Positive</p>
-                  </div>
+              {loadingActivity ? (
+                <div className="text-center p-4 text-content-muted text-sm">Loading activity...</div>
+              ) : recentActivity.length === 0 ? (
+                <div className="text-center p-4 text-content-muted text-sm">No recent activity</div>
+              ) : (
+                <div className="space-y-2">
+                  {recentActivity.map((activity, idx) => (
+                    <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <Clock size={14} className="text-content-muted flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-content">{activity.description}</p>
+                        <p className="text-xs text-content-muted">{activity.result}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <Clock size={14} className="text-content-muted" />
-                  <div className="flex-1">
-                    <p className="text-sm text-content">Batch job — 342 rows (csv)</p>
-                    <p className="text-xs text-content-muted">Completed successfully</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}

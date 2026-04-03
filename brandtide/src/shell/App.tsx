@@ -32,7 +32,7 @@ export default function App() {
         <div className={`px-3 py-4 border-b border-white/10 ${open ? 'block' : 'hidden'}`}>
           <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition text-sm text-white">
             <Building2 size={18} />
-            <span className="flex-1 text-left truncate">Demo Company</span>
+            <span className="flex-1 text-left truncate">{user?.company || user?.name || user?.email || 'My Workspace'}</span>
             <ChevronLeft size={16} className="rotate-[-90deg]" />
           </button>
         </div>
@@ -106,11 +106,7 @@ export default function App() {
               <span className="status-dot status-dot-live"></span>
               LIVE
             </span>
-            <button className="p-2 rounded-lg hover:bg-gray-100 transition relative">
-              <Bell size={20} className="text-content-muted" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"></span>
-            </button>
-          </div>
+                      </div>
         </header>
 
         {/* Page content */}

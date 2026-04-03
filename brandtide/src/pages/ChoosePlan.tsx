@@ -39,7 +39,7 @@ export default function ChoosePlan() {
     {
       id: 'free' as Plan,
       name: 'Free',
-      price: '$0',
+      price: 'pkr0',
       period: '/month',
       description: 'Perfect for trying out BrandTide',
       icon: Sparkles,
@@ -51,7 +51,7 @@ export default function ChoosePlan() {
     {
       id: 'pro' as Plan,
       name: 'Pro',
-      price: '$49',
+      price: 'pkr49',
       period: '/month',
       description: 'For growing businesses',
       icon: Zap,

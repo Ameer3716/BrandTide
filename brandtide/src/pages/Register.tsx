@@ -140,11 +140,11 @@ export default function Register(){
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-white/10 rounded-lg p-2.5">
-                <div className="text-xl font-bold text-accent mb-0.5">10K+</div>
-                <div className="text-white/70 text-xs">Reviews</div>
+                <div className="text-xl font-bold text-accent mb-0.5">0.96</div>
+                <div className="text-white/70 text-xs">Model F1</div>
                 <div className="mt-1 flex items-center gap-1">
                   <TrendingUp size={12} className="text-green-400" />
-                  <span className="text-green-400 text-[10px]">+24%</span>
+                  <span className="text-green-400 text-[10px]">Macro</span>
                 </div>
               </div>
               <div className="bg-white/10 rounded-lg p-2.5">
@@ -156,11 +156,11 @@ export default function Register(){
                 </div>
               </div>
               <div className="bg-white/10 rounded-lg p-2.5">
-                <div className="text-xl font-bold text-accent mb-0.5">500+</div>
-                <div className="text-white/70 text-xs">Brands</div>
+                <div className="text-xl font-bold text-accent mb-0.5">95.4%</div>
+                <div className="text-white/70 text-xs">Confidence</div>
                 <div className="mt-1 flex items-center gap-1">
                   <SparkleIcon size={12} className="text-yellow-400" />
-                  <span className="text-yellow-400 text-[10px]">Growing</span>
+                  <span className="text-yellow-400 text-[10px]">Avg Score</span>
                 </div>
               </div>
               <div className="bg-white/10 rounded-lg p-2.5">
