@@ -20,6 +20,9 @@ import stripeRoutes from './routes/stripeRoutes.js'
 
 const app = express()
 
+// Trust proxy - required for rate limiting behind Render's reverse proxy
+app.set('trust proxy', 1)
+
 // Connect to MongoDB
 connectDB()
 
