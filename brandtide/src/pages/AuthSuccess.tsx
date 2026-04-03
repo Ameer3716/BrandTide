@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/state/auth'
 import { Loader2 } from 'lucide-react'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
 export default function AuthSuccess() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -14,7 +16,7 @@ export default function AuthSuccess() {
     if (token) {
       // Store the token and user info
       // Fetch user info from the backend using the token
-      fetch('http://localhost:5000/api/auth/me', {
+      fetch(`${API_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
