@@ -320,11 +320,20 @@ export const getBrands = async (req, res) => {
   try {
     const userId = req.user._id
     
-    const brands = await Brand.find({ userId, isActive: true }).select('name').lean()
+    // Get unique brands from actual review data (only from user's uploaded documents)
+    const brandsFromReviews = await Review.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $group: { _id: '$brand' } },
+      { $sort: { _id: 1 } }
+    ])
+    
+    const brands = brandsFromReviews
+      .map(b => b._id)
+      .filter(b => b && b.trim()) // Filter out null/empty brands
     
     res.json({
       success: true,
-      data: brands.map(b => b.name)
+      data: brands
     })
   } catch (error) {
     res.status(500).json({
@@ -343,22 +352,47 @@ export const getProducts = async (req, res) => {
     const userId = req.user._id
     const { brand } = req.query
     
-    const query = { userId, isActive: true }
+    // Build aggregation pipeline from actual review data
+    const pipeline = [
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } }
+    ]
     
-    // Use case-insensitive filtering for brand if provided
+    // Add brand filter if provided (case-insensitive)
     if (brand && brand !== '') {
-      query.brand = { $regex: `^${brand}$`, $options: 'i' }
+      pipeline.push({
+        $match: {
+          $expr: {
+            $eq: [{ $toLower: '$brand' }, brand.toLowerCase()]
+          }
+        }
+      })
     }
     
-    const products = await Product.find(query).select('productId name brand').lean()
+    // Group by product to get unique products with their details
+    pipeline.push(
+      {
+        $group: {
+          _id: '$productId',
+          productName: { $first: '$productName' },
+          brand: { $first: '$brand' }
+        }
+      },
+      { $sort: { productName: 1 } }
+    )
+    
+    const products = await Review.aggregate(pipeline)
+    
+    const result = products
+      .map(p => ({
+        id: p._id,
+        name: p.productName,
+        brand: p.brand
+      }))
+      .filter(p => p.name && p.name.trim()) // Filter out null/empty products
     
     res.json({
       success: true,
-      data: products.map(p => ({
-        id: p.productId,
-        name: p.name,
-        brand: p.brand
-      }))
+      data: result
     })
   } catch (error) {
     res.status(500).json({
