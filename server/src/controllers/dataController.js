@@ -128,10 +128,22 @@ export const getSentimentTrend = async (req, res) => {
 export const getTopProducts = async (req, res) => {
   try {
     const userId = req.user._id
+    const { brand, product } = req.query
+    
+    // Build match query with optional filters
+    const matchQuery = { userId: new mongoose.Types.ObjectId(userId) }
+    
+    if (brand && brand !== '') {
+      matchQuery.brand = brand
+    }
+    
+    if (product && product !== '') {
+      matchQuery.productName = product
+    }
     
     // Use facet to run both aggregations in a single query
     const results = await Review.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: matchQuery },
       {
         $facet: {
           positive: [
@@ -195,15 +207,28 @@ export const getTopProducts = async (req, res) => {
 export const getRepresentativeReviews = async (req, res) => {
   try {
     const userId = req.user._id
-    const { kind = 'pos', limit = 10 } = req.query
+    const { kind = 'pos', limit = 10, brand, product } = req.query
     
     const sentimentLabel = kind === 'pos' ? 'Positive' : 'Negative'
     
-    // Use lean() and select only needed fields for better performance
-    const reviews = await Review.find({
+    // Build query with optional filters
+    const query = {
       userId,
       'sentiment.label': sentimentLabel
-    })
+    }
+    
+    // Add brand filter if provided
+    if (brand && brand !== '') {
+      query.brand = brand
+    }
+    
+    // Add product filter if provided
+    if (product && product !== '') {
+      query.productName = product
+    }
+    
+    // Use lean() and select only needed fields for better performance
+    const reviews = await Review.find(query)
     .select('text productId productName brand sentiment.confidence')
     .sort({ 'sentiment.confidence': -1 })
     .limit(parseInt(limit))
@@ -398,9 +423,21 @@ export const initializeSampleData = async (req, res) => {
 export const getTopics = async (req, res) => {
   try {
     const userId = req.user._id
+    const { brand, product } = req.query
+    
+    // Build match query with optional filters
+    const matchQuery = { userId: new mongoose.Types.ObjectId(userId) }
+    
+    if (brand && brand !== '') {
+      matchQuery.brand = brand
+    }
+    
+    if (product && product !== '') {
+      matchQuery.productName = product
+    }
     
     const topicAgg = await Review.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: matchQuery },
       { $unwind: '$topics' },
       { $group: {
         _id: '$topics.name',

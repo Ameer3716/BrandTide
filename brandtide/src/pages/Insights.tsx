@@ -47,12 +47,44 @@ export default function Insights() {
       try {
         const productsData = await dataService.getProducts(selectedBrand || undefined)
         setProducts(productsData || [])
+        setSelectedProduct('') // Reset product filter when brand changes
       } catch (error) {
         console.error('Error loading products:', error)
       }
     }
     loadProducts()
   }, [selectedBrand])
+
+  // Reload samples when brand or product filter changes
+  useEffect(() => {
+    async function loadSamples() {
+      try {
+        const reviewsData = await dataService.getRepresentativeReviews('pos', 6, selectedBrand || undefined, selectedProduct || undefined)
+        setSamples(reviewsData || [])
+      } catch (error) {
+        console.error('Error loading samples:', error)
+      }
+    }
+    loadSamples()
+  }, [selectedBrand, selectedProduct])
+
+  // Reload topics when brand or product filter changes
+  useEffect(() => {
+    async function loadTopics() {
+      try {
+        const topicsData = await dataService.getTopics(selectedBrand || undefined, selectedProduct || undefined)
+        setTopics(topicsData || [])
+        if (topicsData && topicsData.length > 0) {
+          setActive(topicsData[0].label)
+        } else {
+          setActive('')
+        }
+      } catch (error) {
+        console.error('Error loading topics:', error)
+      }
+    }
+    loadTopics()
+  }, [selectedBrand, selectedProduct])
 
   if (loading) {
     return (

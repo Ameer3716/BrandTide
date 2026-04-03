@@ -39,8 +39,16 @@ export const dataService = {
   },
 
   // Get top products
-  async getTopProducts() {
-    const response = await fetch(`${API_URL}/data/top-products`, {
+  async getTopProducts(brand?: string, product?: string) {
+    const params = new URLSearchParams()
+    if (brand) params.append('brand', brand)
+    if (product) params.append('product', product)
+    
+    const url = params.toString()
+      ? `${API_URL}/data/top-products?${params.toString()}`
+      : `${API_URL}/data/top-products`
+    
+    const response = await fetch(url, {
       headers: getAuthHeaders()
     })
     const data = await response.json()
@@ -49,8 +57,14 @@ export const dataService = {
   },
 
   // Get representative reviews
-  async getRepresentativeReviews(kind = 'pos', limit = 10) {
-    const response = await fetch(`${API_URL}/data/representative-reviews?kind=${kind}&limit=${limit}`, {
+  async getRepresentativeReviews(kind = 'pos', limit = 10, brand?: string, product?: string) {
+    const params = new URLSearchParams()
+    params.append('kind', kind)
+    params.append('limit', String(limit))
+    if (brand) params.append('brand', brand)
+    if (product) params.append('product', product)
+    
+    const response = await fetch(`${API_URL}/data/representative-reviews?${params.toString()}`, {
       headers: getAuthHeaders()
     })
     const data = await response.json()
@@ -104,8 +118,16 @@ export const dataService = {
   },
 
   // Get topics aggregated from reviews
-  async getTopics() {
-    const response = await fetch(`${API_URL}/data/topics`, {
+  async getTopics(brand?: string, product?: string) {
+    const params = new URLSearchParams()
+    if (brand) params.append('brand', brand)
+    if (product) params.append('product', product)
+    
+    const url = params.toString() 
+      ? `${API_URL}/data/topics?${params.toString()}`
+      : `${API_URL}/data/topics`
+    
+    const response = await fetch(url, {
       headers: getAuthHeaders()
     })
     const data = await response.json()
