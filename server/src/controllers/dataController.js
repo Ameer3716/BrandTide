@@ -130,45 +130,70 @@ export const getTopProducts = async (req, res) => {
     const userId = req.user._id
     const { brand, product } = req.query
     
-    // Build match query with optional filters
-    const matchQuery = { userId: new mongoose.Types.ObjectId(userId) }
+    // Build aggregation pipeline with case-insensitive filtering
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId)
+        }
+      }
+    ]
     
+    // Add brand filter if provided (case-insensitive)
     if (brand && brand !== '') {
-      matchQuery.brand = brand
+      pipeline.push({
+        $match: {
+          $expr: {
+            $eq: [
+              { $toLower: '$brand' },
+              brand.toLowerCase()
+            ]
+          }
+        }
+      })
     }
     
+    // Add product filter if provided (case-insensitive)
     if (product && product !== '') {
-      matchQuery.productName = product
+      pipeline.push({
+        $match: {
+          $expr: {
+            $eq: [
+              { $toLower: '$productName' },
+              product.toLowerCase()
+            ]
+          }
+        }
+      })
     }
     
     // Use facet to run both aggregations in a single query
-    const results = await Review.aggregate([
-      { $match: matchQuery },
-      {
-        $facet: {
-          positive: [
-            { $match: { 'sentiment.label': 'Positive' } },
-            { $group: {
-              _id: { productId: '$productId', productName: '$productName', brand: '$brand' },
-              count: { $sum: 1 },
-              avgConf: { $avg: '$sentiment.confidence' }
-            }},
-            { $sort: { count: -1 } },
-            { $limit: 10 }
-          ],
-          negative: [
-            { $match: { 'sentiment.label': 'Negative' } },
-            { $group: {
-              _id: { productId: '$productId', productName: '$productName', brand: '$brand' },
-              count: { $sum: 1 },
-              avgConf: { $avg: '$sentiment.confidence' }
-            }},
-            { $sort: { count: -1 } },
-            { $limit: 10 }
-          ]
-        }
+    pipeline.push({
+      $facet: {
+        positive: [
+          { $match: { 'sentiment.label': 'Positive' } },
+          { $group: {
+            _id: { productId: '$productId', productName: '$productName', brand: '$brand' },
+            count: { $sum: 1 },
+            avgConf: { $avg: '$sentiment.confidence' }
+          }},
+          { $sort: { count: -1 } },
+          { $limit: 10 }
+        ],
+        negative: [
+          { $match: { 'sentiment.label': 'Negative' } },
+          { $group: {
+            _id: { productId: '$productId', productName: '$productName', brand: '$brand' },
+            count: { $sum: 1 },
+            avgConf: { $avg: '$sentiment.confidence' }
+          }},
+          { $sort: { count: -1 } },
+          { $limit: 10 }
+        ]
       }
-    ])
+    })
+    
+    const results = await Review.aggregate(pipeline)
     
     const topPositive = results[0].positive
     const topNegative = results[0].negative
@@ -211,28 +236,59 @@ export const getRepresentativeReviews = async (req, res) => {
     
     const sentimentLabel = kind === 'pos' ? 'Positive' : 'Negative'
     
-    // Build query with optional filters
-    const query = {
-      userId,
-      'sentiment.label': sentimentLabel
-    }
+    // Build aggregation pipeline for case-insensitive filtering
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          'sentiment.label': sentimentLabel
+        }
+      }
+    ]
     
-    // Add brand filter if provided
+    // Add brand filter if provided (case-insensitive)
     if (brand && brand !== '') {
-      query.brand = brand
+      pipeline.push({
+        $match: {
+          $expr: {
+            $eq: [
+              { $toLower: '$brand' },
+              brand.toLowerCase()
+            ]
+          }
+        }
+      })
     }
     
-    // Add product filter if provided
+    // Add product filter if provided (case-insensitive)
     if (product && product !== '') {
-      query.productName = product
+      pipeline.push({
+        $match: {
+          $expr: {
+            $eq: [
+              { $toLower: '$productName' },
+              product.toLowerCase()
+            ]
+          }
+        }
+      })
     }
     
-    // Use lean() and select only needed fields for better performance
-    const reviews = await Review.find(query)
-    .select('text productId productName brand sentiment.confidence')
-    .sort({ 'sentiment.confidence': -1 })
-    .limit(parseInt(limit))
-    .lean()
+    // Sort and limit
+    pipeline.push(
+      { $sort: { 'sentiment.confidence': -1 } },
+      { $limit: parseInt(limit) },
+      { $project: {
+        _id: 1,
+        text: 1,
+        productId: 1,
+        productName: 1,
+        brand: 1,
+        'sentiment.confidence': 1
+      }}
+    )
+    
+    const reviews = await Review.aggregate(pipeline)
     
     // Decrypt only the fields we need
     const formatted = reviews.map(r => ({
@@ -288,7 +344,11 @@ export const getProducts = async (req, res) => {
     const { brand } = req.query
     
     const query = { userId, isActive: true }
-    if (brand) query.brand = brand
+    
+    // Use case-insensitive filtering for brand if provided
+    if (brand && brand !== '') {
+      query.brand = { $regex: `^${brand}$`, $options: 'i' }
+    }
     
     const products = await Product.find(query).select('productId name brand').lean()
     
@@ -424,20 +484,46 @@ export const getTopics = async (req, res) => {
   try {
     const userId = req.user._id
     const { brand, product } = req.query
+
+    // Build aggregation pipeline with case-insensitive filtering
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId)
+        }
+      }
+    ]
     
-    // Build match query with optional filters
-    const matchQuery = { userId: new mongoose.Types.ObjectId(userId) }
-    
+    // Add brand filter if provided (case-insensitive)
     if (brand && brand !== '') {
-      matchQuery.brand = brand
+      pipeline.push({
+        $match: {
+          $expr: {
+            $eq: [
+              { $toLower: '$brand' },
+              brand.toLowerCase()
+            ]
+          }
+        }
+      })
     }
     
+    // Add product filter if provided (case-insensitive)
     if (product && product !== '') {
-      matchQuery.productName = product
+      pipeline.push({
+        $match: {
+          $expr: {
+            $eq: [
+              { $toLower: '$productName' },
+              product.toLowerCase()
+            ]
+          }
+        }
+      })
     }
     
-    const topicAgg = await Review.aggregate([
-      { $match: matchQuery },
+    // Group and aggregate topics
+    pipeline.push(
       { $unwind: '$topics' },
       { $group: {
         _id: '$topics.name',
@@ -446,7 +532,9 @@ export const getTopics = async (req, res) => {
       }},
       { $sort: { count: -1 } },
       { $limit: 20 }
-    ])
+    )
+    
+    const topicAgg = await Review.aggregate(pipeline)
     
     const topics = topicAgg.map(t => ({
       label: t._id,
