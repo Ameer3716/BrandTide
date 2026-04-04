@@ -44,11 +44,13 @@ export const createSchedule = async (req, res) => {
         const localDateString = `${customDate}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`
         let scheduleDateTime = dayjs(localDateString)
         
-        // If timezone offset is provided, adjust to UTC
-        // JavaScript getTimezoneOffset() returns positive minutes for zones west of UTC
-        // So EST (UTC-5) returns +300. We need to SUBTRACT this to get UTC time
+        // JavaScript's getTimezoneOffset() returns minutes offset FROM UTC
+        // For Pakistan (UTC+5): returns -300 (negative because ahead of UTC)
+        // For EST (UTC-5): returns 300 (positive because behind UTC)
+        // To convert LOCAL time to UTC: UTC = LOCAL + timezoneOffset
+        // So we ADD the offset (which will subtract for positive, add for negative)
         if (timezoneOffset !== undefined && timezoneOffset !== null) {
-          scheduleDateTime = scheduleDateTime.subtract(timezoneOffset, 'minute')
+          scheduleDateTime = scheduleDateTime.add(timezoneOffset, 'minute')
         }
         
         nextSend = scheduleDateTime.toDate()
