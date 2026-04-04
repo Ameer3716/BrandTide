@@ -111,7 +111,7 @@ export default function ChoosePlan() {
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`bg-white p-7 rounded-2xl border-2 transition cursor-pointer relative ${
+                className={`bg-white p-7 rounded-2xl border-2 transition cursor-pointer relative flex flex-col ${
                   activePlan === plan.id
                     ? 'border-accent shadow-lg scale-[1.02]'
                     : 'border-gray-200 hover:border-accent/50 hover:shadow-md'
@@ -145,7 +145,7 @@ export default function ChoosePlan() {
                   </div>
                 )}
 
-                <ul className="space-y-2.5 mb-6">
+                <ul className="space-y-2.5 mb-6 flex-1">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <CheckCircle2 className="text-accent mt-0.5 flex-shrink-0" size={16} />

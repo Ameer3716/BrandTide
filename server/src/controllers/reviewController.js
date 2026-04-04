@@ -2,6 +2,7 @@ import Review from '../models/Review.js'
 import Brand from '../models/Brand.js'
 import Product from '../models/Product.js'
 import SentimentData from '../models/SentimentData.js'
+import BatchJob from '../models/BatchJob.js'
 import dayjs from 'dayjs'
 
 // ── ML Service configuration ────────────────────────────────────────────────
@@ -379,6 +380,27 @@ export const classifyBatch = async (req, res) => {
     const verifyProducts = await Product.countDocuments({ userId, isActive: true })
     console.log(`🔍 Verification: ${verifyBrands} active brands, ${verifyProducts} active products found in DB`)
     
+    // Create BatchJob record for tracking
+    const fileName = `batch_${Date.now()}`
+    try {
+      const batchJob = new BatchJob({
+        userId,
+        fileName,
+        rowCount: reviews.length,
+        status: 'completed',
+        results: {
+          positive: sentimentCounts.Positive,
+          neutral: sentimentCounts.Neutral,
+          negative: sentimentCounts.Negative
+        },
+        processedAt: new Date()
+      })
+      await batchJob.save()
+      console.log(`📋 BatchJob created: ${fileName}`)
+    } catch (e) {
+      console.warn('Failed to create BatchJob record:', e.message)
+    }
+    
     // Add index to results for frontend
     const indexed = results.map((r, i) => ({ ...r, index: i }))
     
@@ -493,7 +515,6 @@ export const getReviews = async (req, res) => {
 export const getRecentActivity = async (req, res) => {
   try {
     const userId = req.user._id
-    const BatchJob = await import('../models/BatchJob.js').then(m => m.default)
     
     // Get most recent MANUAL reviews only (not from batch/csv)
     const recentReviews = await Review.find({ userId, source: { $ne: 'csv' } })
@@ -518,7 +539,7 @@ export const getRecentActivity = async (req, res) => {
     // Format batch jobs
     const batchesFormatted = recentBatches.map(batch => ({
       type: 'batch',
-      description: `Batch job — ${batch.rowCount} rows from ${batch.fileName}`,
+      description: `Batch job — ${batch.rowCount} rows`,
       result: `Status: ${batch.status.charAt(0).toUpperCase() + batch.status.slice(1)}${batch.results ? ` (${batch.results.positive} positive, ${batch.results.neutral} neutral, ${batch.results.negative} negative)` : ''}`,
       timestamp: batch.createdAt
     }))
