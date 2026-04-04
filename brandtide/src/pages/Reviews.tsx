@@ -10,8 +10,8 @@ export default function Reviews() {
   useEffect(() => {
     async function loadReviews() {
       try {
-        const reviews = await dataService.getRepresentativeReviews('pos', 20)
-        setList(reviews)
+        const reviewsResponse = await dataService.getRepresentativeReviews('pos', 20)
+        setList(reviewsResponse.data || [])
       } catch (error) {
         console.error('Error loading reviews:', error)
       } finally {

@@ -11,12 +11,12 @@ export default function Highlights() {
   useEffect(() => {
     async function loadReviews() {
       try {
-        const [posReviews, negReviews] = await Promise.all([
+        const [posResponse, negResponse] = await Promise.all([
           dataService.getRepresentativeReviews('pos', 5),
           dataService.getRepresentativeReviews('neg', 5)
         ])
-        setPos(posReviews)
-        setNeg(negReviews)
+        setPos(posResponse.data || [])
+        setNeg(negResponse.data || [])
       } catch (error) {
         console.error('Error loading highlights:', error)
       } finally {

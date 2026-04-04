@@ -10,13 +10,16 @@ export default function PDFBuilder() {
     setLoading(true)
     try {
       // Fetch real data from the API
-      const [metrics, trend, topProducts, posReviews, negReviews] = await Promise.all([
+      const [metrics, trend, topProducts, posResponse, negResponse] = await Promise.all([
         dataService.getMetrics(),
         dataService.getSentimentTrend(),
         dataService.getTopProducts(),
         dataService.getRepresentativeReviews('pos', 5),
         dataService.getRepresentativeReviews('neg', 5)
       ])
+
+      const posReviews = posResponse.data || []
+      const negReviews = negResponse.data || []
 
       const pdf = new jsPDF('p', 'mm', 'a4')
       const pageWidth = pdf.internal.pageSize.getWidth()

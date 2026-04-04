@@ -71,7 +71,7 @@ export const dataService = {
     })
     const data = await response.json()
     if (!response.ok) throw new Error(data.message)
-    return data
+    return data  // Return full response: { success, data, total }
   },
 
   // Get brands list
