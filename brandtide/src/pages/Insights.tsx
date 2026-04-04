@@ -33,9 +33,7 @@ export default function Insights() {
         setProducts(productsData || [])
         setSamples(reviewsResponse.data || [])
         setTotalReviews(reviewsResponse.total || 0)
-        if (topicsData && topicsData.length > 0) {
-          setActive(topicsData[0].label)
-        }
+        setActive('') // Set to empty string to show "All" topics by default
       } catch (error) {
         console.error('Error loading insights:', error)
       } finally {
@@ -92,11 +90,7 @@ export default function Insights() {
       try {
         const topicsData = await dataService.getTopics(selectedBrand || undefined, selectedProduct || undefined)
         setTopics(topicsData || [])
-        if (topicsData && topicsData.length > 0) {
-          setActive(topicsData[0].label)
-        } else {
-          setActive('')
-        }
+        setActive('') // Reset to "All" topics when filters change
       } catch (error) {
         console.error('Error loading topics:', error)
       }
@@ -190,6 +184,12 @@ export default function Insights() {
           <h4 className="text-sm font-medium text-content mb-3">Topics</h4>
           {topics.length > 0 ? (
             <div className="flex flex-wrap gap-2">
+              <TopicChip
+                label="All"
+                count={totalReviews}
+                active={active === ''}
+                onClick={() => setActive('')}
+              />
               {topics.map(t => (
                 <TopicChip
                   key={t.label}
