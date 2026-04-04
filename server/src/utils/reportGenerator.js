@@ -3,7 +3,6 @@ import Brand from '../models/Brand.js'
 import Product from '../models/Product.js'
 import mongoose from 'mongoose'
 import dayjs from 'dayjs'
-import { decrypt } from './encryption.js'
 
 /**
  * Generate sentiment report data for a user
@@ -59,13 +58,13 @@ export const generateSentimentReport = async (userId) => {
     const neutralPercent = totalReviews > 0 ? Math.round((distribution.Neutral / totalReviews) * 100) : 0
     const negativePercent = totalReviews > 0 ? Math.round((distribution.Negative / totalReviews) * 100) : 0
 
-    // Decrypt reviews for the report
-    const decryptedReviews = recentReviews.map(r => ({
-      text: decrypt(r.text),
+    // Format reviews for the report (no decryption needed)
+    const formattedReviews = recentReviews.map(r => ({
+      text: r.text,
       sentiment: r.sentiment.label,
       confidence: r.sentiment.confidence,
-      brand: decrypt(r.brand),
-      product: decrypt(r.productName),
+      brand: r.brand,
+      product: r.productName,
       date: r.createdAt
     }))
 
@@ -82,16 +81,16 @@ export const generateSentimentReport = async (userId) => {
         negativePercent
       },
       topBrands: topBrands.map(b => ({
-        name: decrypt(b._id),
+        name: b._id,
         count: b.count,
         confidence: Math.round(b.avgConfidence * 100) / 100
       })),
       topProducts: topProducts.map(p => ({
-        name: decrypt(p._id),
+        name: p._id,
         count: p.count,
         confidence: Math.round(p.avgConfidence * 100) / 100
       })),
-      recentReviews: decryptedReviews
+      recentReviews: formattedReviews
     }
 
     return report

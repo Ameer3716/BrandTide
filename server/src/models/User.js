@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
-import { encrypt, decrypt, hash } from '../utils/encryption.js'
+import { hash } from '../utils/encryption.js'
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -88,13 +88,6 @@ const userSchema = new mongoose.Schema({
   toJSON: { 
     getters: true,
     transform: function(doc, ret) {
-      // Decrypt fields when converting to JSON
-      if (ret.name) {
-        ret.name = decrypt(ret.name)
-      }
-      if (ret.email) {
-        ret.email = decrypt(ret.email)
-      }
       delete ret.emailHash
       delete ret.__v
       delete ret.password
@@ -104,13 +97,6 @@ const userSchema = new mongoose.Schema({
   toObject: { 
     getters: true,
     transform: function(doc, ret) {
-      // Decrypt fields when converting to object
-      if (ret.name) {
-        ret.name = decrypt(ret.name)
-      }
-      if (ret.email) {
-        ret.email = decrypt(ret.email)
-      }
       delete ret.emailHash
       delete ret.__v
       return ret
@@ -118,18 +104,13 @@ const userSchema = new mongoose.Schema({
   }
 })
 
-// Pre-save hook to hash and encrypt email
+// Pre-save hook to hash email
 userSchema.pre('save', function(next) {
-  // Encrypt name if modified
-  if (this.isModified('name') && this.name) {
-    this.name = encrypt(this.name)
-  }
-  
-  // Hash and encrypt email if modified
+  // Hash email if modified (for searching)
   if (this.isModified('email')) {
     const plainEmail = this.email.toLowerCase().trim()
     
-    // Validate email format before encryption
+    // Validate email format
     const emailRegex = /^\S+@\S+\.\S+$/
     if (!emailRegex.test(plainEmail)) {
       return next(new Error('Please provide a valid email'))
@@ -137,8 +118,8 @@ userSchema.pre('save', function(next) {
     
     // Create hash for searching
     this.emailHash = hash(plainEmail)
-    // Encrypt the email for storage
-    this.email = encrypt(plainEmail)
+    // Store plaintext email
+    this.email = plainEmail
   }
   next()
 })

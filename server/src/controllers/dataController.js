@@ -4,7 +4,6 @@ import Brand from '../models/Brand.js'
 import SentimentData from '../models/SentimentData.js'
 import dayjs from 'dayjs'
 import mongoose from 'mongoose'
-import { decrypt } from '../utils/encryption.js'
 
 // @desc    Get dashboard metrics
 // @route   GET /api/data/metrics
@@ -203,15 +202,15 @@ export const getTopProducts = async (req, res) => {
       data: {
         pos: topPositive.map(p => ({
           id: p._id.productId,
-          name: decrypt(p._id.productName),
-          brand: decrypt(p._id.brand),
+          name: p._id.productName,
+          brand: p._id.brand,
           count: p.count,
           conf: Math.round(p.avgConf * 100) / 100
         })),
         neg: topNegative.map(p => ({
           id: p._id.productId,
-          name: decrypt(p._id.productName),
-          brand: decrypt(p._id.brand),
+          name: p._id.productName,
+          brand: p._id.brand,
           count: p.count,
           conf: Math.round(p.avgConf * 100) / 100
         }))
@@ -309,14 +308,14 @@ export const getRepresentativeReviews = async (req, res) => {
     
     const reviews = await Review.aggregate(pipeline)
     
-    // Decrypt only the fields we need
+    // Format response (no decryption needed)
     const formatted = reviews.map(r => ({
       id: r._id,
-      snippet: decrypt(r.text).substring(0, 100) + (decrypt(r.text).length > 100 ? '...' : ''),
+      snippet: r.text.substring(0, 100) + (r.text.length > 100 ? '...' : ''),
       product: {
         id: r.productId,
-        name: decrypt(r.productName),
-        brand: decrypt(r.brand)
+        name: r.productName,
+        brand: r.brand
       },
       freq: 1,
       conf: r.sentiment.confidence,

@@ -49,7 +49,7 @@ export const register = async (req, res) => {
     // Generate token
     const token = generateToken(user._id)
     
-    // Convert to JSON to trigger decryption transform
+    // Convert to JSON
     const userJson = user.toJSON()
     
     res.status(201).json({
@@ -164,7 +164,7 @@ export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
     
-    // Convert to JSON to trigger decryption transform
+    // Convert to JSON
     const userJson = user.toJSON()
     
     res.json({

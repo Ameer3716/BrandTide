@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import { encrypt, decrypt } from '../utils/encryption.js'
 
 const reviewSchema = new mongoose.Schema({
   userId: {
@@ -59,15 +58,6 @@ const reviewSchema = new mongoose.Schema({
   toJSON: {
     getters: true,
     transform: function(doc, ret) {
-      if (ret.text) {
-        ret.text = decrypt(ret.text)
-      }
-      if (ret.productName) {
-        ret.productName = decrypt(ret.productName)
-      }
-      if (ret.brand) {
-        ret.brand = decrypt(ret.brand)
-      }
       delete ret.__v
       return ret
     }
@@ -75,33 +65,10 @@ const reviewSchema = new mongoose.Schema({
   toObject: {
     getters: true,
     transform: function(doc, ret) {
-      if (ret.text) {
-        ret.text = decrypt(ret.text)
-      }
-      if (ret.productName) {
-        ret.productName = decrypt(ret.productName)
-      }
-      if (ret.brand) {
-        ret.brand = decrypt(ret.brand)
-      }
       delete ret.__v
       return ret
     }
   }
-})
-
-// Pre-save hook to encrypt sensitive fields
-reviewSchema.pre('save', function(next) {
-  if (this.isModified('text') && this.text) {
-    this.text = encrypt(this.text)
-  }
-  if (this.isModified('productName') && this.productName) {
-    this.productName = encrypt(this.productName)
-  }
-  if (this.isModified('brand') && this.brand) {
-    this.brand = encrypt(this.brand)
-  }
-  next()
 })
 
 // Indexes for faster queries

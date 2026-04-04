@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import { encrypt, decrypt } from '../utils/encryption.js'
 
 const batchJobSchema = new mongoose.Schema({
   userId: {
@@ -34,21 +33,10 @@ const batchJobSchema = new mongoose.Schema({
   timestamps: true,
   toJSON: {
     transform: function(doc, ret) {
-      if (ret.fileName) {
-        ret.fileName = decrypt(ret.fileName)
-      }
       delete ret.__v
       return ret
     }
   }
-})
-
-// Encrypt sensitive fields before saving
-batchJobSchema.pre('save', function(next) {
-  if (this.isModified('fileName') && this.fileName) {
-    this.fileName = encrypt(this.fileName)
-  }
-  next()
 })
 
 export default mongoose.model('BatchJob', batchJobSchema)

@@ -12,7 +12,7 @@ async function getOrCreateCustomer(user) {
     return user.stripeCustomerId
   }
 
-  // Decrypt user data for Stripe
+  // Get user data
   const userData = user.toJSON()
 
   const customer = await stripe.customers.create({
