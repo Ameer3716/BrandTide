@@ -1,15 +1,20 @@
 import GlassCard from '@/components/ui/GlassCard'
 import PDFBuilder from '@/components/ui/PDFBuilder'
 import ScheduleModal from '@/components/ui/ScheduleModal'
-import { listReports, saveReportMeta } from '@/services/pdf'
+import { listReports, saveReportMeta, deleteReport } from '@/services/pdf'
 import { useState } from 'react'
-import { FileText, Save, Clock } from 'lucide-react'
+import { FileText, Save, Clock, Trash2 } from 'lucide-react'
 
 export default function Reports() {
   const [items, setItems] = useState(listReports())
 
   function generate() {
     saveReportMeta({ title: 'Monthly Sentiment Report' })
+    setItems(listReports())
+  }
+
+  function handleDelete(reportId: string) {
+    deleteReport(reportId)
     setItems(listReports())
   }
 
@@ -50,9 +55,18 @@ export default function Reports() {
                   <p className="font-medium text-content">{x.title}</p>
                   <p className="text-xs text-content-muted">{new Date(x.createdAt).toLocaleString()}</p>
                 </div>
-                <button className="text-sm text-accent hover:text-accent-dark font-medium">
-                  Download
-                </button>
+                <div className="flex items-center gap-2">
+                  <button className="text-sm text-accent hover:text-accent-dark font-medium flex items-center gap-1">
+                    Download
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(x.id)}
+                    className="text-sm text-red-500 hover:text-red-700 font-medium flex items-center gap-1"
+                  >
+                    <Trash2 size={14} />
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>

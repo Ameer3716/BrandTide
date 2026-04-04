@@ -55,18 +55,18 @@ export default function Insights() {
     loadProducts()
   }, [selectedBrand])
 
-  // Reload samples when brand or product filter changes
+  // Reload samples when brand, product, or topic filter changes
   useEffect(() => {
     async function loadSamples() {
       try {
-        const reviewsData = await dataService.getRepresentativeReviews('pos', 6, selectedBrand || undefined, selectedProduct || undefined)
+        const reviewsData = await dataService.getRepresentativeReviews('pos', 6, selectedBrand || undefined, selectedProduct || undefined, active || undefined)
         setSamples(reviewsData || [])
       } catch (error) {
         console.error('Error loading samples:', error)
       }
     }
     loadSamples()
-  }, [selectedBrand, selectedProduct])
+  }, [selectedBrand, selectedProduct, active])
 
   // Reload topics when brand or product filter changes
   useEffect(() => {

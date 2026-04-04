@@ -8,3 +8,10 @@ export function saveReportMeta(meta:any){
 export function listReports(){
   return JSON.parse(localStorage.getItem('bt:reports')||'[]')
 }
+
+export function deleteReport(reportId: string){
+  const key = 'bt:reports'
+  const arr = JSON.parse(localStorage.getItem(key)||'[]')
+  const filtered = arr.filter((r: any) => r.id !== reportId)
+  localStorage.setItem(key, JSON.stringify(filtered))
+}

@@ -57,12 +57,13 @@ export const dataService = {
   },
 
   // Get representative reviews
-  async getRepresentativeReviews(kind = 'pos', limit = 10, brand?: string, product?: string) {
+  async getRepresentativeReviews(kind = 'pos', limit = 10, brand?: string, product?: string, topic?: string) {
     const params = new URLSearchParams()
     params.append('kind', kind)
     params.append('limit', String(limit))
     if (brand) params.append('brand', brand)
     if (product) params.append('product', product)
+    if (topic) params.append('topic', topic)
     
     const response = await fetch(`${API_URL}/data/representative-reviews?${params.toString()}`, {
       headers: getAuthHeaders()

@@ -232,7 +232,7 @@ export const getTopProducts = async (req, res) => {
 export const getRepresentativeReviews = async (req, res) => {
   try {
     const userId = req.user._id
-    const { kind = 'pos', limit = 10, brand, product } = req.query
+    const { kind = 'pos', limit = 10, brand, product, topic } = req.query
     
     const sentimentLabel = kind === 'pos' ? 'Positive' : 'Negative'
     
@@ -274,6 +274,18 @@ export const getRepresentativeReviews = async (req, res) => {
       })
     }
     
+    // Add topic filter if provided (case-insensitive)
+    if (topic && topic !== '') {
+      pipeline.push({
+        $match: {
+          'topics.name': {
+            $regex: topic,
+            $options: 'i'
+          }
+        }
+      })
+    }
+    
     // Sort and limit
     pipeline.push(
       { $sort: { 'sentiment.confidence': -1 } },
@@ -284,7 +296,8 @@ export const getRepresentativeReviews = async (req, res) => {
         productId: 1,
         productName: 1,
         brand: 1,
-        'sentiment.confidence': 1
+        'sentiment.confidence': 1,
+        topics: 1
       }}
     )
     
@@ -300,7 +313,8 @@ export const getRepresentativeReviews = async (req, res) => {
         brand: decrypt(r.brand)
       },
       freq: 1,
-      conf: r.sentiment.confidence
+      conf: r.sentiment.confidence,
+      topics: r.topics || []
     }))
     
     res.json({ success: true, data: formatted })
