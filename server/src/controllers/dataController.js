@@ -129,7 +129,7 @@ export const getTopProducts = async (req, res) => {
     const userId = req.user._id
     const { brand, product } = req.query
     
-    // Build aggregation pipeline with case-insensitive filtering
+    // Build aggregation pipeline with combined filters
     const pipeline = [
       {
         $match: {
@@ -138,32 +138,22 @@ export const getTopProducts = async (req, res) => {
       }
     ]
     
+    // Build combined match conditions
+    const matchConditions = {}
+    
     // Add brand filter if provided (case-insensitive)
     if (brand && brand !== '') {
-      pipeline.push({
-        $match: {
-          $expr: {
-            $eq: [
-              { $toLower: '$brand' },
-              brand.toLowerCase()
-            ]
-          }
-        }
-      })
+      matchConditions.brand = { $regex: `^${brand}$`, $options: 'i' }
     }
     
     // Add product filter if provided (case-insensitive)
     if (product && product !== '') {
-      pipeline.push({
-        $match: {
-          $expr: {
-            $eq: [
-              { $toLower: '$productName' },
-              product.toLowerCase()
-            ]
-          }
-        }
-      })
+      matchConditions.productName = { $regex: `^${product}$`, $options: 'i' }
+    }
+    
+    // Apply combined filters
+    if (Object.keys(matchConditions).length > 0) {
+      pipeline.push({ $match: matchConditions })
     }
     
     // Use facet to run both aggregations in a single query
@@ -235,7 +225,7 @@ export const getRepresentativeReviews = async (req, res) => {
     
     const sentimentLabel = kind === 'pos' ? 'Positive' : 'Negative'
     
-    // Build aggregation pipeline for case-insensitive filtering
+    // Build aggregation pipeline with all filters combined
     const pipeline = [
       {
         $match: {
@@ -245,44 +235,27 @@ export const getRepresentativeReviews = async (req, res) => {
       }
     ]
     
-    // Add brand filter if provided (case-insensitive)
+    // Build combined match conditions
+    const matchConditions = {}
+    
+    // Add brand filter if provided (case-insensitive using regex)
     if (brand && brand !== '') {
-      pipeline.push({
-        $match: {
-          $expr: {
-            $eq: [
-              { $toLower: '$brand' },
-              brand.toLowerCase()
-            ]
-          }
-        }
-      })
+      matchConditions.brand = { $regex: `^${brand}$`, $options: 'i' }
     }
     
-    // Add product filter if provided (case-insensitive)
+    // Add product filter if provided (case-insensitive using regex)
     if (product && product !== '') {
-      pipeline.push({
-        $match: {
-          $expr: {
-            $eq: [
-              { $toLower: '$productName' },
-              product.toLowerCase()
-            ]
-          }
-        }
-      })
+      matchConditions.productName = { $regex: `^${product}$`, $options: 'i' }
     }
     
     // Add topic filter if provided (case-insensitive)
     if (topic && topic !== '') {
-      pipeline.push({
-        $match: {
-          'topics.name': {
-            $regex: topic,
-            $options: 'i'
-          }
-        }
-      })
+      matchConditions['topics.name'] = { $regex: topic, $options: 'i' }
+    }
+    
+    // Apply combined filters in single stage (more efficient)
+    if (Object.keys(matchConditions).length > 0) {
+      pipeline.push({ $match: matchConditions })
     }
     
     // Count total matching reviews before pagination
@@ -381,9 +354,7 @@ export const getProducts = async (req, res) => {
     if (brand && brand !== '') {
       pipeline.push({
         $match: {
-          $expr: {
-            $eq: [{ $toLower: '$brand' }, brand.toLowerCase()]
-          }
+          brand: { $regex: `^${brand}$`, $options: 'i' }
         }
       })
     }
@@ -451,7 +422,7 @@ export const getTopics = async (req, res) => {
     const userId = req.user._id
     const { brand, product } = req.query
 
-    // Build aggregation pipeline with case-insensitive filtering
+    // Build aggregation pipeline with combined filters
     const pipeline = [
       {
         $match: {
@@ -460,32 +431,22 @@ export const getTopics = async (req, res) => {
       }
     ]
     
+    // Build combined match conditions
+    const matchConditions = {}
+    
     // Add brand filter if provided (case-insensitive)
     if (brand && brand !== '') {
-      pipeline.push({
-        $match: {
-          $expr: {
-            $eq: [
-              { $toLower: '$brand' },
-              brand.toLowerCase()
-            ]
-          }
-        }
-      })
+      matchConditions.brand = { $regex: `^${brand}$`, $options: 'i' }
     }
     
     // Add product filter if provided (case-insensitive)
     if (product && product !== '') {
-      pipeline.push({
-        $match: {
-          $expr: {
-            $eq: [
-              { $toLower: '$productName' },
-              product.toLowerCase()
-            ]
-          }
-        }
-      })
+      matchConditions.productName = { $regex: `^${product}$`, $options: 'i' }
+    }
+    
+    // Apply combined filters
+    if (Object.keys(matchConditions).length > 0) {
+      pipeline.push({ $match: matchConditions })
     }
     
     // Group and aggregate topics
