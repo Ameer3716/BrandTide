@@ -19,14 +19,17 @@ export default function App() {
       {/* Desktop sidebar */}
       <aside className={`hidden md:flex flex-col bg-sidebar transition-all duration-300 ${open ? 'w-64' : 'w-20'}`}>
         {/* Logo section */}
-        <div className="p-4 flex items-center gap-3 border-b border-white/10">
+        <button
+          onClick={() => navigate('/')}
+          className="p-4 flex items-center gap-3 border-b border-white/10 hover:opacity-80 transition-opacity cursor-pointer"
+        >
           <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center flex-shrink-0">
             <img src="/logo.jpg" alt="BrandTide Logo" className="w-10 h-10 rounded-xl object-cover" />
           </div>
           <h1 className={`text-xl font-bold text-white transition-opacity ${open ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
             BrandTide
           </h1>
-        </div>
+        </button>
 
         {/* Company selector */}
         <div className={`px-3 py-4 border-b border-white/10 ${open ? 'block' : 'hidden'}`}>

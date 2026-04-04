@@ -230,12 +230,12 @@ export default function Landing() {
                 <div className="text-content-muted text-sm mt-1">Accuracy</div>
               </div>
               <div className="bg-gray-50 rounded-2xl shadow-lg border-2 border-gray-300 p-6 hover:shadow-xl transition-shadow">
-                <div className="text-3xl font-bold text-accent">10K+</div>
-                <div className="text-content-muted text-sm mt-1">Reviews Analyzed</div>
+                <div className="text-3xl font-bold text-accent">0.94</div>
+                <div className="text-content-muted text-sm mt-1">Model F1 Score</div>
               </div>
               <div className="bg-gray-50 rounded-2xl shadow-lg border-2 border-gray-300 p-6 hover:shadow-xl transition-shadow">
-                <div className="text-3xl font-bold text-accent">500+</div>
-                <div className="text-content-muted text-sm mt-1">Brands Trust Us</div>
+                <div className="text-3xl font-bold text-accent">96%</div>
+                <div className="text-content-muted text-sm mt-1">Confidence Score</div>
               </div>
               <div className="bg-gray-50 rounded-2xl shadow-lg border-2 border-gray-300 p-6 hover:shadow-xl transition-shadow">
                 <div className="text-3xl font-bold text-accent">24/7</div>
@@ -403,7 +403,7 @@ export default function Landing() {
                 {[
                   { icon: TrendingUp, value: '98%', label: 'Model Accuracy' },
                   { icon: Zap, value: '< 100ms', label: 'Processing Time' },
-                  { icon: Globe, value: '15+', label: 'Languages' },
+                  { icon: Globe, value: '2+', label: 'Languages' },
                   { icon: Shield, value: '100%', label: 'Secure' },
                 ].map((stat, i) => (
                   <div key={i} className="bg-gray-50 p-6 rounded-xl">
@@ -427,14 +427,14 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-8">
             {/* Free Plan */}
             <div
-              className={`bg-white p-8 rounded-2xl border-2 transition cursor-pointer ${activePlan === 'free' ? 'border-accent shadow-card' : 'border-gray-200 hover:border-accent/50'
+              className={`bg-white p-8 rounded-2xl border-2 transition cursor-pointer flex flex-col ${activePlan === 'free' ? 'border-accent shadow-card' : 'border-gray-200 hover:border-accent/50'
                 }`}
               onClick={() => setActivePlan('free')}
             >
               <h3 className="text-2xl font-bold text-content mb-2">Free</h3>
               <div className="text-4xl font-bold text-content mb-6">Rs 0<span className="text-lg text-content-muted">/month</span></div>
               <p className="text-content-muted mb-6">Perfect for trying out BrandTide</p>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {['100 reviews/month', 'Basic sentiment analysis', 'Dashboard access', 'CSV export'].map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <CheckCircle2 className="text-accent mt-0.5 flex-shrink-0" size={18} />
@@ -447,13 +447,13 @@ export default function Landing() {
                 onClick={(e) => { e.stopPropagation(); handlePricingClick('free') }}
                 disabled={checkoutLoading === 'free'}
               >
-                {checkoutLoading === 'free' ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : 'Free Trial'}
+                {checkoutLoading === 'free' ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : 'Start Free Trial'}
               </button>
             </div>
 
             {/* Pro Plan */}
             <div
-              className={`bg-white p-8 rounded-2xl border-2 relative transition cursor-pointer ${activePlan === 'pro' ? 'border-accent shadow-card' : 'border-gray-200 hover:border-accent/50'
+              className={`bg-white p-8 rounded-2xl border-2 relative transition cursor-pointer flex flex-col ${activePlan === 'pro' ? 'border-accent shadow-card' : 'border-gray-200 hover:border-accent/50'
                 }`}
               onClick={() => setActivePlan('pro')}
             >
@@ -463,7 +463,7 @@ export default function Landing() {
               <h3 className="text-2xl font-bold text-content mb-2">Pro</h3>
               <div className="text-4xl font-bold text-content mb-6">Rs 490<span className="text-lg text-content-muted">/month</span></div>
               <p className="text-content-muted mb-6">For growing businesses</p>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {['5,000 reviews/month', 'Advanced sentiment analysis', 'Topic detection', 'PDF reports', 'Scheduled reports', 'Priority support'].map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <CheckCircle2 className="text-accent mt-0.5 flex-shrink-0" size={18} />
@@ -482,14 +482,14 @@ export default function Landing() {
 
             {/* Enterprise Plan */}
             <div
-              className={`bg-white p-8 rounded-2xl border-2 transition cursor-pointer ${activePlan === 'enterprise' ? 'border-accent shadow-card' : 'border-gray-200 hover:border-accent/50'
+              className={`bg-white p-8 rounded-2xl border-2 transition cursor-pointer flex flex-col ${activePlan === 'enterprise' ? 'border-accent shadow-card' : 'border-gray-200 hover:border-accent/50'
                 }`}
               onClick={() => setActivePlan('enterprise')}
             >
               <h3 className="text-2xl font-bold text-content mb-2">Enterprise</h3>
               <div className="text-4xl font-bold text-content mb-6">Custom</div>
               <p className="text-content-muted mb-6">For large organizations</p>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {['Unlimited reviews', 'Custom AI models', 'API access', 'Dedicated support', 'On-premise deployment', 'SLA guarantee'].map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <CheckCircle2 className="text-accent mt-0.5 flex-shrink-0" size={18} />
@@ -502,7 +502,7 @@ export default function Landing() {
                 onClick={(e) => { e.stopPropagation(); handlePricingClick('enterprise') }}
                 disabled={checkoutLoading === 'enterprise'}
               >
-                {checkoutLoading === 'enterprise' ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : 'Get Started'}
+                {checkoutLoading === 'enterprise' ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : 'Contact Sales'}
               </button>
             </div>
           </div>
@@ -522,28 +522,40 @@ export default function Landing() {
                 role: 'Supervisor',
                 gradient: 'from-sidebar to-sidebar-dark',
                 initials: 'QZ',
-                image: '/team/qamar.png'  // Add your photo to: public/team/qamar.png
+                image: '/team/qamar.png',
+                email: 'qamar.zaman@nu.edu.pk',
+                github: 'https://github.com/zaqamar/',
+                linkedin: 'https://www.linkedin.com/in/qamarozzzaman/'
               },
               {
                 name: 'Waleed Ahmad',
                 role: 'AI / ML Engineer',
                 gradient: 'from-accent to-accent-dark',
                 initials: 'WA',
-                image: '/team/waleed.png'  // Add your photo to: public/team/waleed.png
+                image: '/team/waleed.png',
+                email: 'waleedahmad3002@gmail.com',
+                github: 'https://github.com/Waleed-Ahmad20',
+                linkedin: 'https://www.linkedin.com/in/waleed-ahmad2/'
               },
               {
                 name: 'Abdullah Cheema',
                 role: 'AI / ML Engineer',
                 gradient: 'from-accent-dark to-sidebar',
                 initials: 'AC',
-                image: '/team/abdullah.png'  // Add your photo to: public/team/abdullah.png
+                image: '/team/abdullah.png',
+                email: 'f223664@cfd.nu.edu.pk',
+                github: 'https://github.com/lockheed886',
+                linkedin: 'https://www.linkedin.com/in/abdullah-cheema-074b82210/'
               },
               {
                 name: 'Ameer Sultan',
                 role: 'Web & AI / ML Engineer',
                 gradient: 'from-sidebar to-accent',
                 initials: 'AS',
-                image: '/team/ameer.png'  // Add your photo to: public/team/ameer.png
+                image: '/team/ameer.png',
+                email: 'f223716@cfd.nu.edu.pk',
+                github: 'https://github.com/Ameer3716',
+                linkedin: 'https://www.linkedin.com/in/ameer-sultan/'
               },
             ].map((member, i) => (
               <div key={i} className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center group">
@@ -578,13 +590,13 @@ export default function Landing() {
 
                 {/* Social Links */}
                 <div className="flex justify-center gap-3">
-                  <a href="#" className="p-2.5 bg-gray-100 hover:bg-accent hover:text-white rounded-xl transition-all duration-200">
+                  <a href={`mailto:${member.email}`} className="p-2.5 bg-gray-100 hover:bg-accent hover:text-white rounded-xl transition-all duration-200" title="Email">
                     <Mail size={18} className="text-content-muted group-hover:text-inherit" />
                   </a>
-                  <a href="#" className="p-2.5 bg-gray-100 hover:bg-sidebar hover:text-white rounded-xl transition-all duration-200">
+                  <a href={member.github} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-gray-100 hover:bg-sidebar hover:text-white rounded-xl transition-all duration-200" title="GitHub">
                     <Github size={18} className="text-content-muted" />
                   </a>
-                  <a href="#" className="p-2.5 bg-gray-100 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-200">
+                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-gray-100 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-200" title="LinkedIn">
                     <Linkedin size={18} className="text-content-muted" />
                   </a>
                 </div>

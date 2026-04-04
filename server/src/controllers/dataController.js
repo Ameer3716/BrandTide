@@ -22,8 +22,8 @@ export const getMetrics = async (req, res) => {
           count: { $sum: 1 }
         }}
       ]),
-      Brand.countDocuments({ userId, isActive: true }),
-      Product.countDocuments({ userId, isActive: true })
+      Brand.countDocuments({ userId, isActive: true, name: { $nin: ['General', 'Unknown', 'N/A', 'Other'] } }),
+      Product.countDocuments({ userId, isActive: true, name: { $nin: ['Review', 'Product', 'Item', 'N/A', 'Other'] } })
     ])
     
     const distribution = { Positive: 0, Neutral: 0, Negative: 0 }
@@ -327,9 +327,10 @@ export const getBrands = async (req, res) => {
       { $sort: { _id: 1 } }
     ])
     
+    const genericBrands = ['general', 'unknown', 'n/a', 'other']
     const brands = brandsFromReviews
       .map(b => b._id)
-      .filter(b => b && b.trim()) // Filter out null/empty brands
+      .filter(b => b && b.trim() && !genericBrands.includes(b.toLowerCase())) // Filter out null/empty and generic brands
     
     res.json({
       success: true,
@@ -382,13 +383,14 @@ export const getProducts = async (req, res) => {
     
     const products = await Review.aggregate(pipeline)
     
+    const genericProducts = ['review', 'product', 'item', 'n/a', 'other']
     const result = products
       .map(p => ({
         id: p._id,
         name: p.productName,
         brand: p.brand
       }))
-      .filter(p => p.name && p.name.trim()) // Filter out null/empty products
+      .filter(p => p.name && p.name.trim() && !genericProducts.includes(p.name.toLowerCase())) // Filter out null/empty and generic products
     
     res.json({
       success: true,

@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Sparkles, Flame, BarChart3, Upload, ListOrdered, FileText, User, X } from 'lucide-react'
 
 const items = [
@@ -14,6 +14,8 @@ const items = [
 ]
 
 export default function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const navigate = useNavigate()
+
   return (
     <>
       {/* Backdrop */}
@@ -25,7 +27,13 @@ export default function MobileSidebar({ open, onClose }: { open: boolean; onClos
       {/* Sidebar panel */}
       <aside className={`fixed z-50 top-0 left-0 h-full w-[280px] max-w-[85vw] bg-sidebar flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Header */}
-        <div className="p-4 flex items-center justify-between border-b border-white/10">
+        <button
+          onClick={() => {
+            navigate('/')
+            onClose()
+          }}
+          className="p-4 flex items-center justify-between border-b border-white/10 hover:opacity-80 transition-opacity cursor-pointer"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
               <Sparkles className="text-white" size={20} />
@@ -33,12 +41,15 @@ export default function MobileSidebar({ open, onClose }: { open: boolean; onClos
             <h2 className="text-lg font-semibold text-white">BrandTide</h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation()
+              onClose()
+            }}
             className="p-2 rounded-lg hover:bg-white/10 transition"
           >
             <X size={20} className="text-white/70" />
           </button>
-        </div>
+        </button>
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">

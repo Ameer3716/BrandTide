@@ -137,22 +137,27 @@ function generateBrandAndProduct(reviewText) {
   // Simple heuristic to detect brand/product mentions
   const brandPatterns = [
     /(?:brand|company|made by|manufacturer):\s*(\w+)/i,
-    /^(Apple|Samsung|Google|Microsoft|Sony|LG|OnePlus|Xiaomi|Huawei|Realme|Nokia|Motorola|HTC|BlackBerry)\s/i,
-    /(iPhone|Galaxy|Pixel|Surface|Xperia|V\d+|Note|Max|Pro|Ultra)\s/i
+    /^(Apple|Samsung|Google|Microsoft|Sony|LG|OnePlus|Xiaomi|Huawei|Realme|Nokia|Motorola|HTC|BlackBerry|Oppo|Vivo|Poco)\s/i,
+    /(iPhone|Galaxy|Pixel|Surface|Xperia|V\d+|Note|Max|Pro|Ultra|Air|Lite)\b/i
   ]
   
-  let brand = 'Unknown'
+  let brand = null
   for (const pattern of brandPatterns) {
     const match = reviewText.match(pattern)
-    if (match) {
-      brand = match[1] || 'Unknown'
+    if (match && match[1]) {
+      brand = match[1].trim()
       break
     }
   }
   
-  // First few words as product
-  const words = reviewText.trim().split(/\s+/).slice(0, 3).join(' ')
-  const product = words.substring(0, 50) || 'Generic Product'
+  // First few meaningful words as product name (skip common words)
+  const commonWords = ['the', 'a', 'an', 'is', 'at', 'by', 'for', 'from', 'in', 'on', 'to', 'and', 'or', 'but', 'this', 'that', 'it', 'i']
+  const words = reviewText.trim()
+    .split(/\s+/)
+    .filter(w => !commonWords.includes(w.toLowerCase()))
+    .slice(0, 3)
+    .join(' ')
+  const product = words.length > 0 ? words.substring(0, 50) : null
   
   return { brand, product }
 }
@@ -213,7 +218,7 @@ export const classifyBatch = async (req, res) => {
       'review_text': 'text', 'review': 'text', 'comment': 'text', 'sentence': 'text', 'text_review': 'text', 'review_content': 'text',
       'product': 'product_name', 'productname': 'product_name', 'product_id': 'product_id', 'product name': 'product_name', 'item': 'product_name', 'item_name': 'product_name',
       'productid': 'product_id', 'product-id': 'product_id', 'id': 'product_id',
-      'brand_name': 'brand', 'brand name': 'brand', 'company': 'brand', 'vendor': 'brand', 'manufacturer': 'brand',
+      'brand': 'brand', 'brand_name': 'brand', 'brand name': 'brand', 'company': 'brand', 'vendor': 'brand', 'manufacturer': 'brand',
       'topic': 'topic', 'category': 'topic', 'topic_name': 'topic'
     }
     
@@ -244,26 +249,27 @@ export const classifyBatch = async (req, res) => {
     const productMap = new Map() // productId -> { name, brand }
     
     for (const row of normalizedReviews) {
-      let brand = row.brand || ''
-      let productName = row.product_name || ''
+      let brand = (row.brand || '').trim()
+      let productName = (row.product_name || '').trim()
       const reviewText = row.text || ''
       
       // Fallback: extract from review text if brand/product not provided
-      if (!brand || brand === 'Unknown') {
+      if (!brand) {
         const extracted = generateBrandAndProduct(reviewText)
-        if (!brand) brand = extracted.brand
-        if (!productName) productName = extracted.product
+        if (extracted.brand) brand = extracted.brand.trim()
+        if (!productName && extracted.product) productName = extracted.product.trim()
       }
       
-      // Double fallback if still empty
-      if (!brand) brand = 'General'
-      if (!productName) productName = 'Review'
+      // Only track meaningful brands and products (not generic placeholders)
+      if (brand && brand.length > 0 && !['general', 'unknown', 'n/a', 'na', 'other'].includes(brand.toLowerCase())) {
+        brandSet.add(brand)
+      }
       
-      const productId = row.product_id || `P-${productName.replace(/\s+/g, '-').substring(0, 20)}`
-      
-      brandSet.add(brand.trim())
-      if (!productMap.has(productId)) {
-        productMap.set(productId, { name: productName.trim(), brand: brand.trim() })
+      if (productName && productName.length > 0 && !['review', 'product', 'item', 'n/a', 'na', 'other'].includes(productName.toLowerCase())) {
+        const productId = row.product_id || `P-${productName.replace(/\s+/g, '-').substring(0, 20)}`
+        if (!productMap.has(productId)) {
+          productMap.set(productId, { name: productName, brand: brand || 'General' })
+        }
       }
     }
     
@@ -307,17 +313,17 @@ export const classifyBatch = async (req, res) => {
       const pred = results[i] || {}
       
       const reviewText = row.text || ''
-      let brand = row.brand || ''
-      let productName = row.product_name || ''
+      let brand = (row.brand || '').trim()
+      let productName = (row.product_name || '').trim()
       
       // Fallback: extract from review text if brand/product not provided
-      if (!brand || brand === 'Unknown') {
+      if (!brand) {
         const extracted = generateBrandAndProduct(reviewText)
-        if (!brand) brand = extracted.brand
-        if (!productName) productName = extracted.product
+        if (extracted.brand) brand = extracted.brand.trim()
+        if (!productName && extracted.product) productName = extracted.product.trim()
       }
       
-      // Double fallback if still empty
+      // Use fallback for review entries (these won't be tracked in branded metrics)
       if (!brand) brand = 'General'
       if (!productName) productName = 'Review'
       
@@ -489,10 +495,10 @@ export const getRecentActivity = async (req, res) => {
     const userId = req.user._id
     const BatchJob = await import('../models/BatchJob.js').then(m => m.default)
     
-    // Get 5 most recent reviews
-    const recentReviews = await Review.find({ userId })
+    // Get most recent MANUAL reviews only (not from batch/csv)
+    const recentReviews = await Review.find({ userId, source: { $ne: 'csv' } })
       .sort({ createdAt: -1 })
-      .limit(5)
+      .limit(10)
       .select('text sentiment.label createdAt')
     
     // Get 5 most recent batch jobs
@@ -501,10 +507,10 @@ export const getRecentActivity = async (req, res) => {
       .limit(5)
       .select('fileName rowCount status results createdAt')
     
-    // Format reviews
+    // Format manual/API reviews only
     const reviewsFormatted = recentReviews.map(review => ({
       type: 'single',
-      description: `Single classify — "${review.text.substring(0, 20)}${review.text.length > 20 ? '…' : ''}"`,
+      description: `Single classify — "${review.text.substring(0, 30)}${review.text.length > 30 ? '…' : ''}"`,
       result: `Result: ${review.sentiment.label}`,
       timestamp: review.createdAt
     }))
@@ -512,8 +518,8 @@ export const getRecentActivity = async (req, res) => {
     // Format batch jobs
     const batchesFormatted = recentBatches.map(batch => ({
       type: 'batch',
-      description: `Batch job — ${batch.rowCount} rows (${batch.fileName})`,
-      result: `Status: ${batch.status.charAt(0).toUpperCase() + batch.status.slice(1)}`,
+      description: `Batch job — ${batch.rowCount} rows from ${batch.fileName}`,
+      result: `Status: ${batch.status.charAt(0).toUpperCase() + batch.status.slice(1)}${batch.results ? ` (${batch.results.positive} positive, ${batch.results.neutral} neutral, ${batch.results.negative} negative)` : ''}`,
       timestamp: batch.createdAt
     }))
     
