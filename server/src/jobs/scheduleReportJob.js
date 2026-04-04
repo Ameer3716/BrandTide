@@ -1,8 +1,8 @@
 import Schedule from '../models/Schedule.js'
 import User from '../models/User.js'
 import dayjs from 'dayjs'
-import { sendEmail } from './email.js'
-import { generateSentimentReport, createReportEmailHTML } from './reportGenerator.js'
+import { sendEmail } from '../utils/email.js'
+import { generateSentimentReport, createReportEmailHTML } from '../utils/reportGenerator.js'
 import mongoose from 'mongoose'
 
 /**
