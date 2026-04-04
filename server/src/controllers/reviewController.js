@@ -168,7 +168,8 @@ function generateBrandAndProduct(reviewText) {
 // @access  Private
 export const classifySingle = async (req, res) => {
   try {
-    const { text } = req.body
+    const { text, productId, productName, brand } = req.body
+    const userId = req.user._id
     
     if (!text || text.trim().length === 0) {
       return res.status(400).json({
@@ -180,13 +181,51 @@ export const classifySingle = async (req, res) => {
     // Classify sentiment via ML service
     const sentiment = await classifySentiment(text)
     
+    // Generate brand and product if not provided
+    let finalBrand = brand
+    let finalProductName = productName
+    
+    if (!finalBrand || !finalProductName) {
+      const extracted = generateBrandAndProduct(text)
+      if (!finalBrand && extracted.brand) finalBrand = extracted.brand
+      if (!finalProductName && extracted.product) finalProductName = extracted.product
+    }
+    
+    // Fallback values if still empty
+    if (!finalBrand) finalBrand = 'General'
+    if (!finalProductName) finalProductName = 'Review'
+    
+    const finalProductId = productId || `P-${finalProductName.replace(/\s+/g, '-').substring(0, 20)}`
+    
+    // Extract topics from the review text
+    const topics = extractTopics(text)
+    
+    // Save review to database
+    const review = new Review({
+      userId,
+      text,
+      productId: finalProductId,
+      productName: finalProductName.trim(),
+      brand: finalBrand.trim(),
+      sentiment: {
+        label: capitalizeLabel(sentiment.label),
+        confidence: sentiment.confidence
+      },
+      topics,
+      source: 'manual'
+    })
+    
+    await review.save()
+    console.log(`✅ Single classification saved: "${text.substring(0, 30)}..." by user ${userId}`)
+    
     res.json({
       success: true,
       data: {
         label: sentiment.label,
         confidence: sentiment.confidence,
         scores: sentiment.scores || {},
-        lang: 'auto'
+        lang: 'auto',
+        saved: true
       }
     })
     
