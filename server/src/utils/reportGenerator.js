@@ -95,6 +95,11 @@ export const generateSentimentReport = async (userId) => {
     }
 
     return report
+  } catch (error) {
+    console.error('Error generating sentiment report:', error)
+    throw error
+  }
+}
 
 /**
  * Create HTML email body for sentiment report
