@@ -2,11 +2,31 @@ import GlassCard from '@/components/ui/GlassCard'
 import PDFBuilder from '@/components/ui/PDFBuilder'
 import ScheduleModal from '@/components/ui/ScheduleModal'
 import { listReports, saveReportMeta, deleteReport } from '@/services/pdf'
-import { useState } from 'react'
-import { FileText, Save, Clock, Trash2 } from 'lucide-react'
+import { scheduleService } from '@/services/api'
+import { useState, useEffect } from 'react'
+import { FileText, Save, Clock, Trash2, Calendar, Loader2 } from 'lucide-react'
+import dayjs from 'dayjs'
 
 export default function Reports() {
   const [items, setItems] = useState(listReports())
+  const [schedules, setSchedules] = useState<any[]>([])
+  const [loadingSchedules, setLoadingSchedules] = useState(true)
+
+  useEffect(() => {
+    loadSchedules()
+  }, [])
+
+  async function loadSchedules() {
+    try {
+      setLoadingSchedules(true)
+      const data = await scheduleService.getSchedules()
+      setSchedules(data || [])
+    } catch (error) {
+      console.error('Failed to load schedules:', error)
+    } finally {
+      setLoadingSchedules(false)
+    }
+  }
 
   function generate() {
     saveReportMeta({ title: 'Monthly Sentiment Report' })
@@ -16,6 +36,24 @@ export default function Reports() {
   function handleDelete(reportId: string) {
     deleteReport(reportId)
     setItems(listReports())
+  }
+
+  async function handleDeleteSchedule(scheduleId: string) {
+    try {
+      await scheduleService.deleteSchedule(scheduleId)
+      loadSchedules()
+    } catch (error) {
+      console.error('Failed to delete schedule:', error)
+    }
+  }
+
+  async function handleToggleSchedule(scheduleId: string) {
+    try {
+      await scheduleService.toggleSchedule(scheduleId)
+      loadSchedules()
+    } catch (error) {
+      console.error('Failed to toggle schedule:', error)
+    }
   }
 
   return (
@@ -36,10 +74,80 @@ export default function Reports() {
             <Save size={16} />
             Save to My Reports
           </button>
-          <ScheduleModal />
+          <ScheduleModal onScheduleCreated={loadSchedules} />
         </div>
       </GlassCard>
 
+      {/* Scheduled Reports Section */}
+      <GlassCard>
+        <div className="flex items-center gap-2 mb-4">
+          <Calendar size={18} className="text-content-muted" />
+          <h3 className="text-lg font-semibold text-content">Scheduled Reports</h3>
+        </div>
+        {loadingSchedules ? (
+          <div className="flex items-center gap-2 text-content-muted py-4">
+            <Loader2 className="animate-spin" size={16} />
+            <span className="text-sm">Loading schedules...</span>
+          </div>
+        ) : schedules.length === 0 ? (
+          <p className="text-content-muted text-sm">No scheduled reports. Create one above!</p>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {schedules.map((s: any) => (
+              <div key={s.id} className="py-4 flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <p className="font-medium text-content capitalize">
+                      {s.cadence === 'custom' 
+                        ? 'One-time Report'
+                        : `${s.cadence.charAt(0).toUpperCase() + s.cadence.slice(1)} Report`}
+                    </p>
+                    {!s.active && (
+                      <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded">
+                        Inactive
+                      </span>
+                    )}
+                    {s.active && (
+                      <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-content-muted">
+                    To: <strong>{s.email}</strong>
+                  </p>
+                  <p className="text-xs text-content-muted mt-1">
+                    {s.lastSent 
+                      ? `Last sent: ${dayjs(s.lastSent).format('MMM D, YYYY h:mm A')}`
+                      : 'Never sent'
+                    }
+                  </p>
+                  <p className="text-xs text-content-muted">
+                    Next send: <strong>{dayjs(s.nextSend).format('MMM D, YYYY h:mm A')}</strong>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleToggleSchedule(s.id)}
+                    className="text-sm px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
+                  >
+                    {s.active ? 'Pause' : 'Resume'}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteSchedule(s.id)}
+                    className="text-sm text-red-500 hover:text-red-700 font-medium flex items-center gap-1"
+                  >
+                    <Trash2 size={14} />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </GlassCard>
+
+      {/* My Reports Section */}
       <GlassCard>
         <div className="flex items-center gap-2 mb-4">
           <Clock size={18} className="text-content-muted" />

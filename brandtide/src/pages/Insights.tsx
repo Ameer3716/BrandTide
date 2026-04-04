@@ -3,7 +3,7 @@ import GlassCard from '@/components/ui/GlassCard'
 import TopicChip from '@/components/ui/TopicChip'
 import ReviewSnippet from '@/components/ui/ReviewSnippet'
 import { dataService } from '@/services/data'
-import { Filter, Download, FileText, Loader2 } from 'lucide-react'
+import { Filter, Download, FileText, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function Insights() {
   const [topics, setTopics] = useState<any[]>([])
@@ -14,21 +14,25 @@ export default function Insights() {
   const [loading, setLoading] = useState(true)
   const [selectedBrand, setSelectedBrand] = useState('')
   const [selectedProduct, setSelectedProduct] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalReviews, setTotalReviews] = useState(0)
+  const pageSize = 6
 
   // Load topics, brands, products from actual data
   useEffect(() => {
     async function loadData() {
       try {
-        const [topicsData, brandsData, productsData, reviews] = await Promise.all([
+        const [topicsData, brandsData, productsData, reviewsResponse] = await Promise.all([
           dataService.getTopics(),
           dataService.getBrands(),
           dataService.getProducts(),
-          dataService.getRepresentativeReviews('pos', 6)
+          dataService.getRepresentativeReviews('pos', pageSize, undefined, undefined, undefined, 0)
         ])
         setTopics(topicsData || [])
         setBrands(brandsData || [])
         setProducts(productsData || [])
-        setSamples(reviews || [])
+        setSamples(reviewsResponse.data || [])
+        setTotalReviews(reviewsResponse.total || 0)
         if (topicsData && topicsData.length > 0) {
           setActive(topicsData[0].label)
         }
@@ -57,16 +61,30 @@ export default function Insights() {
 
   // Reload samples when brand, product, or topic filter changes
   useEffect(() => {
+    setCurrentPage(1) // Reset to page 1 when filters change
+  }, [selectedBrand, selectedProduct, active])
+
+  // Reload samples when page changes or filters reset
+  useEffect(() => {
     async function loadSamples() {
       try {
-        const reviewsData = await dataService.getRepresentativeReviews('pos', 6, selectedBrand || undefined, selectedProduct || undefined, active || undefined)
-        setSamples(reviewsData || [])
+        const skip = (currentPage - 1) * pageSize
+        const reviewsResponse = await dataService.getRepresentativeReviews(
+          'pos',
+          pageSize,
+          selectedBrand || undefined,
+          selectedProduct || undefined,
+          active || undefined,
+          skip
+        )
+        setSamples(reviewsResponse.data || [])
+        setTotalReviews(reviewsResponse.total || 0)
       } catch (error) {
         console.error('Error loading samples:', error)
       }
     }
     loadSamples()
-  }, [selectedBrand, selectedProduct, active])
+  }, [selectedBrand, selectedProduct, active, currentPage])
 
   // Reload topics when brand or product filter changes
   useEffect(() => {
@@ -86,6 +104,27 @@ export default function Insights() {
     loadTopics()
   }, [selectedBrand, selectedProduct])
 
+  const handlePageChange = async (newPage: number) => {
+    const maxPage = Math.ceil(totalReviews / pageSize)
+    if (newPage < 1 || newPage > maxPage) return
+    
+    setCurrentPage(newPage)
+    try {
+      const skip = (newPage - 1) * pageSize
+      const reviewsResponse = await dataService.getRepresentativeReviews(
+        'pos',
+        pageSize,
+        selectedBrand || undefined,
+        selectedProduct || undefined,
+        active || undefined,
+        skip
+      )
+      setSamples(reviewsResponse.data || [])
+    } catch (error) {
+      console.error('Error loading page:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -98,6 +137,7 @@ export default function Insights() {
   }
 
   const noData = topics.length === 0 && samples.length === 0
+  const totalPages = Math.ceil(totalReviews / pageSize)
 
   return (
     <div className="grid lg:grid-cols-4 gap-6">
@@ -192,15 +232,63 @@ export default function Insights() {
             </p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
-            {samples.map(s => (
-              <ReviewSnippet
-                key={s.id}
-                snippet={s.snippet}
-                meta={`${s.product.name} • ${s.freq}× • conf ${s.conf}`}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              {samples.map(s => (
+                <ReviewSnippet
+                  key={s.id}
+                  snippet={s.snippet}
+                  meta={`${s.product.name} • ${s.freq}× • conf ${s.conf}`}
+                />
+              ))}
+            </div>
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-100 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition"
+                >
+                  <ChevronLeft size={16} />
+                  Previous
+                </button>
+                
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 rounded-lg transition ${
+                        page === currentPage
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-gray-100 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition"
+                >
+                  Next
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* Page info */}
+            {totalPages > 0 && (
+              <div className="text-center mt-4 text-sm text-content-muted">
+                Page {currentPage} of {totalPages} • {totalReviews} total reviews
+              </div>
+            )}
+          </>
         )}
       </GlassCard>
     </div>

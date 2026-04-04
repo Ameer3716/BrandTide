@@ -9,6 +9,7 @@ import { connectDB } from './config/database.js'
 import { configurePassport } from './config/passport.js'
 import passport from 'passport'
 import { errorHandler, notFound } from './middlewares/error.js'
+import startScheduleReportJob from './jobs/scheduleReportJob.js'
 
 // Import routes
 import authRoutes from './routes/authRoutes.js'
@@ -98,6 +99,9 @@ app.use(errorHandler)
 // Start server
 const PORT = config.port
 app.listen(PORT, () => {
+  // Start the background job for scheduled reports (checks every 60 seconds)
+  startScheduleReportJob(60000)
+
   console.log(`
 ╔════════════════════════════════════════════╗
 ║                                            ║

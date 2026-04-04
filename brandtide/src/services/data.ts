@@ -57,10 +57,11 @@ export const dataService = {
   },
 
   // Get representative reviews
-  async getRepresentativeReviews(kind = 'pos', limit = 10, brand?: string, product?: string, topic?: string) {
+  async getRepresentativeReviews(kind = 'pos', limit = 10, brand?: string, product?: string, topic?: string, skip = 0) {
     const params = new URLSearchParams()
     params.append('kind', kind)
     params.append('limit', String(limit))
+    params.append('skip', String(skip))
     if (brand) params.append('brand', brand)
     if (product) params.append('product', product)
     if (topic) params.append('topic', topic)
@@ -70,7 +71,7 @@ export const dataService = {
     })
     const data = await response.json()
     if (!response.ok) throw new Error(data.message)
-    return data.data
+    return data
   },
 
   // Get brands list

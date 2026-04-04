@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { X, Calendar, Loader2, Clock } from 'lucide-react'
 import { scheduleService } from '@/services/api'
 
-export default function ScheduleModal() {
+interface ScheduleModalProps {
+  onScheduleCreated?: () => void
+}
+
+export default function ScheduleModal({ onScheduleCreated }: ScheduleModalProps) {
   const [open, setOpen] = useState(false)
   const [cadence, setCadence] = useState('weekly')
   const [email, setEmail] = useState('')
@@ -55,6 +59,9 @@ export default function ScheduleModal() {
         setEmail('')
         setCustomDate('')
         setCustomTime('09:00')
+        setCadence('weekly')
+        // Call the callback to refresh the parent component
+        onScheduleCreated?.()
       }, 2000)
     } catch (err: any) {
       setError(err.message || 'Failed to create schedule. Please try again.')

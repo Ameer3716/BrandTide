@@ -232,7 +232,7 @@ export const getTopProducts = async (req, res) => {
 export const getRepresentativeReviews = async (req, res) => {
   try {
     const userId = req.user._id
-    const { kind = 'pos', limit = 10, brand, product, topic } = req.query
+    const { kind = 'pos', limit = 10, skip = 0, brand, product, topic } = req.query
     
     const sentimentLabel = kind === 'pos' ? 'Positive' : 'Negative'
     
@@ -286,9 +286,15 @@ export const getRepresentativeReviews = async (req, res) => {
       })
     }
     
-    // Sort and limit
+    // Count total matching reviews before pagination
+    const countPipeline = [...pipeline]
+    const countResult = await Review.aggregate(countPipeline.concat([{ $count: 'total' }]))
+    const total = countResult.length > 0 ? countResult[0].total : 0
+    
+    // Sort, skip, and limit
     pipeline.push(
       { $sort: { 'sentiment.confidence': -1 } },
+      { $skip: parseInt(skip) },
       { $limit: parseInt(limit) },
       { $project: {
         _id: 1,
@@ -317,7 +323,7 @@ export const getRepresentativeReviews = async (req, res) => {
       topics: r.topics || []
     }))
     
-    res.json({ success: true, data: formatted })
+    res.json({ success: true, data: formatted, total })
   } catch (error) {
     res.status(500).json({
       success: false,
