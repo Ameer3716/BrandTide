@@ -1,16 +1,17 @@
 import GlassCard from '@/components/ui/GlassCard'
 import PDFBuilder from '@/components/ui/PDFBuilder'
 import ScheduleModal from '@/components/ui/ScheduleModal'
-import { listReports, saveReportMeta, deleteReport } from '@/services/pdf'
+import { listReports, saveReportMeta, deleteReport, downloadReport } from '@/services/pdf'
 import { scheduleService } from '@/services/api'
 import { useState, useEffect } from 'react'
-import { FileText, Save, Clock, Trash2, Calendar, Loader2 } from 'lucide-react'
+import { FileText, Save, Clock, Trash2, Calendar, Loader2, Download } from 'lucide-react'
 import dayjs from 'dayjs'
 
 export default function Reports() {
   const [items, setItems] = useState(listReports())
   const [schedules, setSchedules] = useState<any[]>([])
   const [loadingSchedules, setLoadingSchedules] = useState(true)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
   useEffect(() => {
     loadSchedules()
@@ -36,6 +37,18 @@ export default function Reports() {
   function handleDelete(reportId: string) {
     deleteReport(reportId)
     setItems(listReports())
+  }
+
+  async function handleDownload(reportId: string, reportTitle: string) {
+    try {
+      setDownloadingId(reportId)
+      await downloadReport(reportTitle)
+    } catch (error) {
+      console.error('Failed to download report:', error)
+      alert('Failed to download report. Please try again.')
+    } finally {
+      setDownloadingId(null)
+    }
   }
 
   async function handleDeleteSchedule(scheduleId: string) {
@@ -164,8 +177,17 @@ export default function Reports() {
                   <p className="text-xs text-content-muted">{new Date(x.createdAt).toLocaleString()}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="text-sm text-accent hover:text-accent-dark font-medium flex items-center gap-1">
-                    Download
+                  <button 
+                    onClick={() => handleDownload(x.id, x.title)}
+                    disabled={downloadingId === x.id}
+                    className="text-sm text-accent hover:text-accent-dark font-medium flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {downloadingId === x.id ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Download size={14} />
+                    )}
+                    {downloadingId === x.id ? 'Downloading...' : 'Download'}
                   </button>
                   <button 
                     onClick={() => handleDelete(x.id)}

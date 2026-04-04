@@ -219,7 +219,7 @@ export default function Landing() {
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 className="btn-secondary px-8 py-4 text-lg flex items-center gap-2"
               >
-                Watch Demo <ChevronRight size={20} />
+                Try Demo <ChevronRight size={20} />
               </button>
             </div>
 
@@ -648,9 +648,6 @@ export default function Landing() {
                 className="bg-white text-sidebar px-12 py-4 rounded-xl text-lg font-medium hover:bg-gray-100 transition flex items-center gap-2"
               >
                 Start Free Trial <ArrowRight size={20} />
-              </button>
-              <button className="bg-white/10 backdrop-blur text-white px-12 py-4 rounded-xl text-lg font-medium hover:bg-white/20 transition">
-                Schedule Demo
               </button>
             </div>
           </div>

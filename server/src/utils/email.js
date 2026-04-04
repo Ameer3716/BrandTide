@@ -12,10 +12,16 @@ const createTransporter = () => {
   return nodemailer.createTransport({
     host: config.emailHost,
     port: config.emailPort,
-    secure: config.emailPort === 465, // true for 465, false for other ports
+    secure: config.emailPort === 465, // true for 465, false for other ports (use STARTTLS for 587)
+    requireTLS: config.emailPort === 587, // Required for Gmail on port 587
     auth: {
       user: config.emailUser,
       pass: config.emailPassword
+    },
+    connectionTimeout: 10000, // 10 seconds
+    socketTimeout: 10000, // 10 seconds
+    tls: {
+      rejectUnauthorized: false // Allow self-signed certificates
     }
   })
 }
