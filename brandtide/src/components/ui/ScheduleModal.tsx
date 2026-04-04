@@ -44,13 +44,16 @@ export default function ScheduleModal({ onScheduleCreated }: ScheduleModalProps)
       if (cadence === 'custom') {
         scheduleData.customDate = customDate
         scheduleData.customTime = customTime
+        // Send timezone offset for accurate time conversion
+        scheduleData.timezoneOffset = new Date().getTimezoneOffset()
       }
       
       const response = await scheduleService.createSchedule(
         scheduleData.cadence, 
         scheduleData.email,
         scheduleData.customDate,
-        scheduleData.customTime
+        scheduleData.customTime,
+        scheduleData.timezoneOffset
       )
       setSuccess('Schedule created successfully! Check your email for confirmation.')
       setTimeout(() => {

@@ -113,13 +113,14 @@ export async function createReview(data: { text: string; productId: string; prod
 
 // Schedule APIs
 export const scheduleService = {
-  async createSchedule(cadence: string, email: string, customDate?: string, customTime?: string) {
+  async createSchedule(cadence: string, email: string, customDate?: string, customTime?: string, timezoneOffset?: number) {
     try {
       const payload: any = { cadence, email }
       
       // Add custom date/time if provided
       if (customDate) payload.customDate = customDate
       if (customTime) payload.customTime = customTime
+      if (timezoneOffset !== undefined) payload.timezoneOffset = timezoneOffset
       
       const result = await apiCall('/schedules', {
         method: 'POST',

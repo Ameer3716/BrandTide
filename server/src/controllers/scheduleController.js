@@ -7,7 +7,7 @@ import dayjs from 'dayjs'
 // @access  Private
 export const createSchedule = async (req, res) => {
   try {
-    const { cadence, email, customDate, customTime } = req.body
+    const { cadence, email, customDate, customTime, timezoneOffset } = req.body
     const userId = req.user._id
 
     // Validate input
@@ -37,17 +37,25 @@ export const createSchedule = async (req, res) => {
         nextSend = dayjs().add(1, 'month').date(1).hour(9).minute(0).second(0).toDate() // First day of next month at 9 AM
         break
       case 'custom':
-        // Parse custom date and time
-        const [hours, minutes] = (customTime || '09:00').split(':')
-        nextSend = dayjs(customDate)
-          .hour(parseInt(hours))
-          .minute(parseInt(minutes))
-          .second(0)
-          .toDate()
+        // Parse custom date and time - these come from HTML input which are in LOCAL timezone
+        const [hours, minutes] = (customTime || '09:00').split(':').map(Number)
+        
+        // Create calendar date - interpret input as local time
+        const localDateString = `${customDate}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`
+        let scheduleDateTime = dayjs(localDateString)
+        
+        // If timezone offset is provided, adjust to UTC
+        // JavaScript getTimezoneOffset() returns positive minutes for zones west of UTC
+        // So EST (UTC-5) returns +300. We need to SUBTRACT this to get UTC time
+        if (timezoneOffset !== undefined && timezoneOffset !== null) {
+          scheduleDateTime = scheduleDateTime.subtract(timezoneOffset, 'minute')
+        }
+        
+        nextSend = scheduleDateTime.toDate()
         
         // Validate that custom date is in the future
         if (dayjs(nextSend).isBefore(dayjs())) {
-          return res.status(400).json({ message: 'Custom date must be in the future' })
+          return res.status(400).json({ message: 'Custom date and time must be in the future' })
         }
         break
     }
