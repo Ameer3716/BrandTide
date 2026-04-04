@@ -120,10 +120,11 @@ export const dataService = {
   },
 
   // Get topics aggregated from reviews
-  async getTopics(brand?: string, product?: string) {
+  async getTopics(brand?: string, product?: string, kind: string = 'pos') {
     const params = new URLSearchParams()
     if (brand) params.append('brand', brand)
     if (product) params.append('product', product)
+    params.append('kind', kind)
     
     const url = params.toString() 
       ? `${API_URL}/data/topics?${params.toString()}`

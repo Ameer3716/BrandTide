@@ -420,13 +420,16 @@ export const initializeSampleData = async (req, res) => {
 export const getTopics = async (req, res) => {
   try {
     const userId = req.user._id
-    const { brand, product } = req.query
+    const { brand, product, kind = 'pos' } = req.query
+
+    const sentimentLabel = kind === 'pos' ? 'Positive' : 'Negative'
 
     // Build aggregation pipeline with combined filters
     const pipeline = [
       {
         $match: {
-          userId: new mongoose.Types.ObjectId(userId)
+          userId: new mongoose.Types.ObjectId(userId),
+          'sentiment.label': sentimentLabel
         }
       }
     ]
