@@ -4,7 +4,7 @@ import Product from '../models/Product.js'
 import SentimentData from '../models/SentimentData.js'
 import BatchJob from '../models/BatchJob.js'
 import dayjs from 'dayjs'
-
+import { hash } from '../utils/encryption.js'
 // ── ML Service configuration ────────────────────────────────────────────────
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:7860'
 
@@ -207,6 +207,7 @@ export const classifySingle = async (req, res) => {
       productId: finalProductId,
       productName: finalProductName.trim(),
       brand: finalBrand.trim(),
+      contentHash: hash(text),
       sentiment: {
         label: capitalizeLabel(sentiment.label),
         confidence: sentiment.confidence
@@ -378,6 +379,7 @@ export const classifyBatch = async (req, res) => {
         const review = new Review({
           userId,
           text: reviewText,
+          contentHash: hash(reviewText),
           productId,
           productName: productName.trim(),
           brand: brand.trim(),
