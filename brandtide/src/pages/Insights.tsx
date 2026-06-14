@@ -133,6 +133,25 @@ export default function Insights() {
   const noData = topics.length === 0 && samples.length === 0
   const totalPages = Math.ceil(totalReviews / pageSize)
 
+  // Smart pagination: shows max 7 items with ellipsis
+  const getPageNumbers = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+    const pages: (number | '...')[] = []
+    // Always show first page
+    pages.push(1)
+    if (currentPage > 3) pages.push('...')
+    // Pages around current
+    const start = Math.max(2, currentPage - 1)
+    const end = Math.min(totalPages - 1, currentPage + 1)
+    for (let i = start; i <= end; i++) pages.push(i)
+    if (currentPage < totalPages - 2) pages.push('...')
+    // Always show last page
+    pages.push(totalPages)
+    return pages
+  }
+
   return (
     <div className="grid lg:grid-cols-4 gap-6">
       {/* Filters sidebar */}
@@ -255,20 +274,29 @@ export default function Insights() {
                   Previous
                 </button>
                 
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded-lg transition ${
-                        page === currentPage
-                          ? 'bg-primary-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((page, idx) =>
+                    page === '...' ? (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="px-2 py-1 text-gray-400 select-none"
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page as number)}
+                        className={`w-8 h-8 rounded-lg text-sm transition ${
+                          page === currentPage
+                            ? 'bg-primary-500 text-white font-semibold'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 <button
