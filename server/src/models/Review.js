@@ -10,6 +10,10 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Review text is required']
   },
+  contentHash: {
+    type: String,
+    index: true
+  },
   productId: {
     type: String,
     required: true

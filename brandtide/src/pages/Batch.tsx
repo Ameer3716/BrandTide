@@ -345,21 +345,7 @@ export default function Batch() {
               </div>
             )}
 
-            {/* Smart features callout */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { icon: '🧠', label: 'Auto Column Detection', desc: 'Maps any column names' },
-                { icon: '🔧', label: 'Missing Data Handling', desc: 'Fills in brand & product' },
-                { icon: '🧹', label: 'Data Cleaning', desc: 'Fixes encoding & noise' },
-                { icon: '📊', label: 'Quality Report', desc: 'Detailed processing log' }
-              ].map(f => (
-                <div key={f.label} className="p-3 rounded-xl bg-gradient-to-br from-gray-50 to-indigo-50/50 border border-gray-100 text-center">
-                  <p className="text-lg mb-1">{f.icon}</p>
-                  <p className="text-xs font-semibold text-content">{f.label}</p>
-                  <p className="text-[10px] text-content-muted mt-0.5">{f.desc}</p>
-                </div>
-              ))}
-            </div>
+
           </div>
         )}
 

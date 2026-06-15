@@ -1,5 +1,5 @@
 // src/shell/App.tsx
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   Bell, LogIn, LogOut, Menu, LayoutDashboard, Flame, Sparkles,
   Upload, BarChart3, ListOrdered, FileText, User, ChevronLeft, Building2, Bot
@@ -13,6 +13,21 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user, signInWithGoogle, signOut } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+
+  const getPageInfo = (path: string) => {
+    if (path.startsWith('/app/insights')) return { title: 'Insights', desc: 'Deep dive into sentiment trends' }
+    if (path.startsWith('/app/highlights')) return { title: 'Highlights', desc: 'Key takeaways and anomalies' }
+    if (path.startsWith('/app/classifier')) return { title: 'Classifier', desc: 'Test the sentiment model in real-time' }
+    if (path.startsWith('/app/batch')) return { title: 'Batch Processing', desc: 'Upload CSV data for bulk processing' }
+    if (path.startsWith('/app/ranking')) return { title: 'Ranking', desc: 'Compare products and brands' }
+    if (path.startsWith('/app/reviews')) return { title: 'Reviews', desc: 'Explore and filter individual reviews' }
+    if (path.startsWith('/app/reports')) return { title: 'Reports', desc: 'Generate and export analytical reports' }
+    if (path.startsWith('/app/profile')) return { title: 'Profile', desc: 'Manage your account settings' }
+    return { title: 'Dashboard', desc: 'Explore brand/product sentiment and analytics' }
+  }
+
+  const { title, desc } = getPageInfo(pathname)
 
   return (
     <div className="min-h-screen flex bg-surface-muted">
@@ -99,9 +114,9 @@ export default function App() {
               <Menu size={20} className="text-content" />
             </button>
             <div>
-              <h2 className="text-xl font-semibold text-content">Dashboard</h2>
+              <h2 className="text-xl font-semibold text-content">{title}</h2>
               <p className="text-sm text-content-muted hide-on-tiny">
-                Explore brand/product sentiment and analytics
+                {desc}
               </p>
             </div>
           </div>
