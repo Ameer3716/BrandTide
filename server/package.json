@@ -8,8 +8,9 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed": "node src/scripts/seed.js",
-    "test": "vitest run --reporter=html",
-    "test:report": "vitest run --reporter=json --outputFile=../brandtide/public/backend-report.json"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:report": "vitest run --reporter=default --reporter=json --outputFile=../brandtide/public/backend-report.json"
   },
   "keywords": [
     "express",

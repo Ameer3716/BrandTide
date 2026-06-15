@@ -20,6 +20,10 @@ vi.mock('../../models/Schedule.js', () => {
 })
 import Schedule from '../../models/Schedule.js'
 
+vi.mock('../../utils/email.js', () => ({
+  sendEmail: vi.fn().mockResolvedValue({ success: true, messageId: 'mock-id' })
+}))
+
 describe('Schedule Controller', () => {
   let mockReq, mockRes
   beforeEach(() => {

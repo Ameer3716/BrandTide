@@ -7,9 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run --reporter=html",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:report": "vitest run --reporter=json --outputFile=public/frontend-report.json"
+    "test:report": "vitest run --reporter=default --reporter=json --outputFile=public/frontend-report.json"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.9.0",
