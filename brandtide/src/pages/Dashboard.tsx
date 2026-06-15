@@ -9,6 +9,7 @@ import PDFBuilder from '@/components/ui/PDFBuilder'
 import ScheduleModal from '@/components/ui/ScheduleModal'
 import { dataService } from '@/services/data'
 import { MoreHorizontal } from 'lucide-react'
+import TestReportSummary from '@/components/ui/TestReportSummary'
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState<any>(null)
@@ -165,6 +166,8 @@ export default function Dashboard() {
           </div>
         </div>
       </GlassCard>
+
+      <TestReportSummary />
     </div>
   )
 }

@@ -1,0 +1,67 @@
+name: Automated Tests & Dashboard Reports
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test-and-report:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Needed to commit the JSON reports back to the repo
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install Frontend Dependencies
+      working-directory: ./brandtide
+      run: npm install
+
+    - name: Run Frontend Tests
+      working-directory: ./brandtide
+      run: npm run test:report
+
+    - name: Install Backend Dependencies
+      working-directory: ./server
+      run: npm install
+
+    - name: Run Backend Tests
+      working-directory: ./server
+      run: npm run test:report
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install ML Service Dependencies
+      working-directory: ./ml-service
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-json-report
+
+    - name: Run ML Service Tests
+      working-directory: ./ml-service
+      run: python -m pytest test_app.py --json-report --json-report-file=../brandtide/public/ml-report.json
+
+    - name: Commit and Push Reports
+      if: github.event_name == 'push'
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add brandtide/public/frontend-report.json
+        git add brandtide/public/backend-report.json
+        git add brandtide/public/ml-report.json
+        git commit -m "chore: update automated test reports for dashboard [skip ci]" || echo "No changes to commit"
+        git push
