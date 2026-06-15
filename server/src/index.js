@@ -18,6 +18,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js'
 import dataRoutes from './routes/dataRoutes.js'
 import scheduleRoutes from './routes/scheduleRoutes.js'
 import stripeRoutes from './routes/stripeRoutes.js'
+import agentRoutes from './routes/agentRoutes.js'
 
 const app = express()
 
@@ -89,6 +90,7 @@ app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/data', dataRoutes)
 app.use('/api/schedules', scheduleRoutes)
 app.use('/api/stripe', stripeRoutes)
+app.use('/api/agent', agentRoutes)
 
 // 404 handler
 app.use(notFound)

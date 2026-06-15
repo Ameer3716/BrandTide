@@ -21,8 +21,18 @@ export const getMetrics = async (req, res) => {
           count: { $sum: 1 }
         }}
       ]),
-      Brand.countDocuments({ userId, isActive: true, name: { $nin: ['General', 'Unknown', 'N/A', 'Other'] } }),
-      Product.countDocuments({ userId, isActive: true, name: { $nin: ['Review', 'Product', 'Item', 'N/A', 'Other'] } })
+      Review.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+        { $group: {
+          _id: null,
+          brands: { $addToSet: { $cond: [{ $in: ['$brand', ['General', 'Unknown', 'N/A', 'Other', null, '']] }, null, '$brand'] } },
+          products: { $addToSet: { $cond: [{ $in: ['$productName', ['Review', 'Product', 'Item', 'N/A', 'Other', null, '']] }, null, '$productName'] } }
+        }},
+        { $project: {
+           brandsCount: { $size: { $filter: { input: '$brands', cond: { $ne: ['$$this', null] } } } },
+           productsCount: { $size: { $filter: { input: '$products', cond: { $ne: ['$$this', null] } } } }
+        }}
+      ])
     ])
     
     const distribution = { Positive: 0, Neutral: 0, Negative: 0 }
@@ -40,8 +50,8 @@ export const getMetrics = async (req, res) => {
       success: true,
       data: {
         totalReviews,
-        brandsCount,
-        productsCount,
+        brandsCount: brandsCount[0] ? brandsCount[0].brandsCount : 0,
+        productsCount: brandsCount[0] ? brandsCount[0].productsCount : 0,
         distribution: [
           { name: 'Positive', value: positivePercent },
           { name: 'Neutral', value: neutralPercent },

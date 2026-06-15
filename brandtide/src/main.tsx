@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import Insights from './pages/Insights'
 import Highlights from './pages/Highlights'
 import Classifier from './pages/Classifier'
+
 import Batch from './pages/Batch'
 import Ranking from './pages/Ranking'
 import Reviews from './pages/Reviews'
@@ -45,6 +46,7 @@ const router = createBrowserRouter([
       { path: 'insights', element: <Insights/> },
       { path: 'highlights', element: <Highlights/> },
       { path: 'classifier', element: <Classifier/> },
+
       { path: 'batch', element: <Batch/> },
       { path: 'ranking', element: <Ranking/> },
       { path: 'reviews', element: <Reviews/> },

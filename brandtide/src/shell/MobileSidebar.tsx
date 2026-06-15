@@ -1,11 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Sparkles, Flame, BarChart3, Upload, ListOrdered, FileText, User, X } from 'lucide-react'
+import { LayoutDashboard, Sparkles, Flame, BarChart3, Upload, ListOrdered, FileText, User, X, Bot } from 'lucide-react'
 
 const items = [
   { to: '/app', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
   { to: '/app/insights', label: 'Insights', icon: <Sparkles size={20} /> },
   { to: '/app/highlights', label: 'Highlights', icon: <Flame size={20} /> },
   { to: '/app/classifier', label: 'Classifier', icon: <BarChart3 size={20} /> },
+
   { to: '/app/batch', label: 'Batch', icon: <Upload size={20} /> },
   { to: '/app/ranking', label: 'Ranking', icon: <ListOrdered size={20} /> },
   { to: '/app/reviews', label: 'Reviews', icon: <FileText size={20} /> },

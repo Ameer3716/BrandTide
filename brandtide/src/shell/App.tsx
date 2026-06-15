@@ -2,7 +2,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import {
   Bell, LogIn, LogOut, Menu, LayoutDashboard, Flame, Sparkles,
-  Upload, BarChart3, ListOrdered, FileText, User, ChevronLeft, Building2
+  Upload, BarChart3, ListOrdered, FileText, User, ChevronLeft, Building2, Bot
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/state/auth'
@@ -46,6 +46,7 @@ export default function App() {
           <Item to="/app/insights" icon={<Sparkles size={20} />} label="Insights" open={open} />
           <Item to="/app/highlights" icon={<Flame size={20} />} label="Highlights" open={open} />
           <Item to="/app/classifier" icon={<BarChart3 size={20} />} label="Classifier" open={open} />
+
           <Item to="/app/batch" icon={<Upload size={20} />} label="Batch" open={open} />
           <Item to="/app/ranking" icon={<ListOrdered size={20} />} label="Ranking" open={open} />
           <Item to="/app/reviews" icon={<FileText size={20} />} label="Reviews" open={open} />
