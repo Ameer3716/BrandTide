@@ -30,6 +30,8 @@ jobs:
     - name: Run Frontend Tests
       working-directory: ./brandtide
       run: npm run test:report
+      env:
+        VITE_API_URL: http://localhost:5000
 
     - name: Install Backend Dependencies
       working-directory: ./server
@@ -38,6 +40,12 @@ jobs:
     - name: Run Backend Tests
       working-directory: ./server
       run: npm run test:report
+      env:
+        JWT_SECRET: test_secret
+        JWT_EXPIRE: 30d
+        STRIPE_SECRET_KEY: test_stripe_secret
+        CLIENT_URL: http://localhost:5173
+        MONGO_URI: mongodb://localhost:27017/test
 
     - name: Set up Python
       uses: actions/setup-python@v5
