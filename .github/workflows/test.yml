@@ -44,6 +44,7 @@ jobs:
         JWT_SECRET: test_secret
         JWT_EXPIRE: 30d
         STRIPE_SECRET_KEY: test_stripe_secret
+        STRIPE_PRICE_PRO: price_test_123
         CLIENT_URL: http://localhost:5173
         MONGO_URI: mongodb://localhost:27017/test
 
